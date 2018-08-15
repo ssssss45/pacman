@@ -4,25 +4,31 @@ class pacmanRenderer
 	{
 		this.pathToSpriteSheet = params.pathToSpriteSheet; 
 		this.spriteSheetWidth = params.spriteSheetWidth;
-		this.spriteSheetHight = 160;
-		this.spriteSheetWidthSprites = 14;
-		this.spriteSheetHightSprites = 10;
+		this.spriteSheetHight = params.spriteSheetHight;
+		this.spriteSheetWidthSprites = params.spriteSheetWidthSprites;
+		this.spriteSheetHightSprites = params.spriteSheetHightSprites;
 		this.spriteHight = Math.round(this.spriteSheetHight/this.spriteSheetHightSprites);
 		this.spriteWidth = Math.round(this.spriteSheetWidth/this.spriteSheetWidthSprites);
 		this.gameWidth = params.width;
 		this.gameHight = params.hight;
+		this.playerSpritesLocations = params.playerSpritesLocations;
 
-		this.container = document.getElementById("pacman-container");
+		this.container = document.getElementById(params.container);
 
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
 		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight});
 		this.container.appendChild(this.gameCanvas.view);
 
+		this.playerTextures=[];
+		this.currentPlayerSprite = 0;
+
 		this.createWallSheet();
 		this.loadSpriteSheet();
 		this.levels=params.levels;
 		var boundDraw= this.draw.bind(this);
-		setTimeout(boundDraw,100);
+		setTimeout(boundDraw,200);
+
+		this.spriteArray = [];
 	}
 /*
 ███████╗██████╗ ██████╗ ██╗████████╗███████╗███████╗██╗  ██╗███████╗███████╗████████╗
@@ -31,15 +37,24 @@ class pacmanRenderer
 ╚════██║██╔═══╝ ██╔══██╗██║   ██║   ██╔══╝  ╚════██║██╔══██║██╔══╝  ██╔══╝     ██║   
 ███████║██║     ██║  ██║██║   ██║   ███████╗███████║██║  ██║███████╗███████╗   ██║   
 ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝   
-
 */
 	loadSpriteSheet()
 	{
 		this.spriteCanvas = new PIXI.Application({width: this.spriteSheetWidth, height: this.spriteSheetHight});
-		var texture = PIXI.Texture.fromImage(		this.pathToSpriteSheet);
+		var texture = PIXI.Texture.fromImage(this.pathToSpriteSheet);
 		var spriteSheet = new PIXI.Sprite(texture);
 		this.spriteCanvas.stage.addChild(spriteSheet);
 		this.container.appendChild(this.spriteCanvas.view);
+
+		for (var i=0; i<this.playerSpritesLocations.length; i++)
+		{
+			var playerTexture =
+		   		new PIXI.Texture(
+          		texture,
+          		new PIXI.Rectangle(this.spriteWidth*this.playerSpritesLocations[i].y, this.spriteHight*this.playerSpritesLocations[i].x, this.spriteWidth, this.spriteHight)
+        		);
+        	this.playerTextures.push(playerTexture);
+		}
 	}
 
 /*
@@ -49,7 +64,6 @@ class pacmanRenderer
 ██║███╗██║██╔══██║██║     ██║     ╚════██║██╔══██║██╔══╝  ██╔══╝     ██║   
 ╚███╔███╔╝██║  ██║███████╗███████╗███████║██║  ██║███████╗███████╗   ██║   
  ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝   
-
 */
 
 	createWallSheet()
@@ -137,6 +151,14 @@ class pacmanRenderer
 				this.wallSheet.stage.addChild(line);
 			}
 		}
+/*
+████████╗███████╗██╗  ██╗████████╗██╗   ██╗██████╗ ███████╗███████╗
+╚══██╔══╝██╔════╝╚██╗██╔╝╚══██╔══╝██║   ██║██╔══██╗██╔════╝██╔════╝
+   ██║   █████╗   ╚███╔╝    ██║   ██║   ██║██████╔╝█████╗  ███████╗
+   ██║   ██╔══╝   ██╔██╗    ██║   ██║   ██║██╔══██╗██╔══╝  ╚════██║
+   ██║   ███████╗██╔╝ ██╗   ██║   ╚██████╔╝██║  ██║███████╗███████║
+   ╚═╝   ╚══════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
+*/
 
 		this.wallTextures=[];
 		this.wallTexture = PIXI.Texture.fromCanvas(this.wallSheet.view, PIXI.SCALE_MODES.LINEAR);
@@ -230,7 +252,7 @@ class pacmanRenderer
           			this.wallTexture,
           			new PIXI.Rectangle(32*9, 32*0, 32, 32)
         			);
-		}	
+	}	
 
 /*
 ██████╗ ██████╗  █████╗ ██╗    ██╗
@@ -242,83 +264,156 @@ class pacmanRenderer
 */
 
 
-		//отрисовка уровня
-		draw()
+	//отрисовка уровня
+	draw()
+	{
+		var levelNumber=0;
+		var level = this.levels[levelNumber];
+
+		this.blockHight = Math.round(this.gameHight/level.length);
+		this.blockWidth = Math.round(this.gameWidth/level[0].length);
+
+		level[-1]=[];
+		level[level.length]=[];
+		for (var i=0; i<this.gameCanvas.stage.children.length;i++)
 		{
-			var levelNumber=0;
-			console.log(this.wallTextures);
-			var level = this.levels[levelNumber];
-
-			var blockHight = Math.round(this.gameHight/level.length);
-			var blockWidth = Math.round(this.gameWidth/level[0].length);
-			console.log(blockWidth);
-
-			level[-1]=[];
-			level[level.length]=[];
-			for (var i=0; i<this.gameCanvas.stage.children.length;i++)
+			this.gameCanvas.stage.children[i].destroy();
+		}
+		var sum;
+		for (var i=0; i<level.length;i++)
+		{
+			this.spriteArray[i]=[];
+			for (var j=0; j<level[0].length;j++)
 			{
-				this.gameCanvas.stage.children[i].destroy();
-			}
-			var sum;
-			for (var i=0; i<level.length;i++)
-			{
-				for (var j=0; j<level[0].length;j++)
+				if (level[i][j]==1)
 				{
-					if (level[i][j]==1)
+					sum=0;
+					if (check(level,i-1,j)) sum=sum+this.bitMask[0][1];
+					if (check(level,i+1,j)) sum=sum+this.bitMask[2][1];
+					if (check(level,i,j-1)) sum=sum+this.bitMask[1][0];
+					if (check(level,i,j+1)) sum=sum+this.bitMask[1][2];
+
+					function check(level,x,y)
 					{
-						sum=0;
-						if (check(level,i-1,j)) sum=sum+this.bitMask[0][1];
-						if (check(level,i+1,j)) sum=sum+this.bitMask[2][1];
-						if (check(level,i,j-1)) sum=sum+this.bitMask[1][0];
-						if (check(level,i,j+1)) sum=sum+this.bitMask[1][2];
-
-						function check(level,x,y)
-						{
-							var result = false;
-							if ((level[x][y]==1)||(level[x][y]==undefined)||(level[x][y]==4)||(level[x][y]==5)||(level[x][y]==-1)) result=true;	
-							return result;
-						}
+						var result = false;
+						if ((level[x][y]==1)||(level[x][y]==undefined)||(level[x][y]==4)||(level[x][y]==5)||(level[x][y]==-1)) result=true;	
+						return result;
+					}
+					
+					if (sum==90)
+					{
+						var texture;
+						if (!check(level,i-1,j+1)) texture=18;
+						if (!check(level,i-1,j-1)) texture=10;
+						if (!check(level,i+1,j-1)) texture=72;
+						if (!check(level,i+1,j+1)) texture=80;
 						
-						if (sum==90)
-						{
-							var texture;
-							if (!check(level,i-1,j+1)) texture=18;
-							if (!check(level,i-1,j-1)) texture=10;
-							if (!check(level,i+1,j-1)) texture=72;
-							if (!check(level,i+1,j+1)) texture=80;
-							
-							var sprite = new PIXI.Sprite(this.wallTextures[texture]);	
-						}
-						else
-						{
-							var sprite = new PIXI.Sprite(this.wallTextures[sum]);	
-						}
-
-						
-						sprite.x = j*blockWidth;
-						sprite.y = i*blockHight;
-						sprite.width = blockWidth;
-						sprite.height = blockHight;
-						this.gameCanvas.stage.addChild(sprite);
+						var sprite = new PIXI.Sprite(this.wallTextures[texture]);	
 					}
 					else
 					{
-						if((level[i][j]>1)&&(level[i][j]<6))
-						{
-							var sprite = new PIXI.Sprite(this.otherTextures[level[i][j]]);
-							sprite.x = j*blockWidth;
-							sprite.y = i*blockHight;
-							sprite.width = blockWidth;
-							sprite.height = blockHight;
-							this.gameCanvas.stage.addChild(sprite);	
-						}
+						var sprite = new PIXI.Sprite(this.wallTextures[sum]);	
+					}
+
+					
+					sprite.x = j*this.blockWidth;
+					sprite.y = i*this.blockHight;
+					sprite.width = this.blockWidth;
+					sprite.height = this.blockHight;
+					this.gameCanvas.stage.addChild(sprite);
+				}
+				else
+				{
+
+					if((level[i][j]>1)&&(level[i][j]<6))
+					{
+						var sprite = new PIXI.Sprite(this.otherTextures[level[i][j]]);
+						sprite.x = j*this.blockWidth;
+						sprite.y = i*this.blockHight;
+						sprite.width = this.blockWidth;
+						sprite.height = this.blockHight;
+						this.gameCanvas.stage.addChild(sprite);
+						if ((level[i][j]==2)||(level[i][j]==3))
+							{
+								this.spriteArray[i][j] = sprite;								
+							}	
+
+					}
+
+					if(level[i][j]==6)
+					{
+						this.playerSprite = new PIXI.Sprite(this.playerTextures[0]);
+						this.playerSprite.x = (j+0.5)*this.blockWidth;
+						this.playerSprite.y = (i+0.5)*this.blockHight;
+						this.playerSprite.width = this.blockWidth;
+						this.playerSprite.height = this.blockHight;
+						this.playerSprite.pivot.x = this.blockWidth / 2;
+						this.playerSprite.pivot.y = this.blockHight / 2;
+						this.playerLastX = this.playerSprite.x;
+						this.playerLastY = this.playerSprite.y;
+						//this.gameCanvas.stage.addChild(this.playerSprite);
+
+						console.log(this.playerSprite);
 					}
 				}
 			}
+		}
 
-			function addToSum(dx,dy,sum,mask)
+		function addToSum(dx,dy,sum,mask)
+		{
+			return sum = sum + mask[dx][dy];
+		}
+		this.gameCanvas.stage.addChild(this.playerSprite);
+	}
+
+	renderMovement(x,y,direction)
+	{
+		if(((this.playerSprite.x-0.5)!=this.playerLastX)||((this.playerSprite.y-0.5)!=this.playerLastY))
+		{
+			this.animatePlayer(this.playerLastX, this.playerLastY, (x + 0.5) * this.
+				blockWidth, (y + 0.5) * this.blockHight, this.playerSprite);
+			this.playerLastX = (x + 0.5) * this.blockWidth;
+			this.playerLastY = (y + 0.5) * this.blockHight;
+			if(this.spriteArray[y][x]!=undefined)
 			{
-				return sum = sum + mask[dx][dy];
+				this.spriteArray[y][x].destroy();	
 			}
 		}
+
+		//this.playerSprite.x = (x + 0.5) * this.blockWidth;
+		//this.playerSprite.y = (x + 0.5) * this.blockWidth;
+
+		switch (direction)
+		{
+			case 0: this.playerSprite.rotation = 3.14; break;
+			case 1: this.playerSprite.rotation = -1.57; break;
+			case 2: this.playerSprite.rotation = 0; break;
+			case 3: this.playerSprite.rotation = 1.57; break;
+		}
+
+		this.currentPlayerSprite++;
+		if (this.currentPlayerSprite==this.playerTextures.length) this.currentPlayerSprite = 0;
+		this.playerSprite.setTexture(this.playerTextures[this.currentPlayerSprite] );
 	}
+
+	animatePlayer(oldx,oldy,newx,newy,sprite)
+	{
+		var speedX = (newx-oldx)/6;
+		var speedY = (newy-oldy)/6;
+
+		var repeats=0;			
+		animate();
+		function animate()
+		{	
+			sprite.x = sprite.x + speedX;
+			sprite.y = sprite.y + speedY;
+			if (repeats!=5)
+			{
+				repeats++;
+				setTimeout(animate,20);
+			}
+		}
+
+	}
+
+}
