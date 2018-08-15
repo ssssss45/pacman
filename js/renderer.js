@@ -2,25 +2,27 @@ class pacmanRenderer
 {
 	constructor(params)
 	{
-		this.pathToSpriteSheet = 'resources/Pac-Man__Sprite_Sheet.png'; 
-		this.spriteSheetWidth = 227;
+		this.pathToSpriteSheet = params.pathToSpriteSheet; 
+		this.spriteSheetWidth = params.spriteSheetWidth;
 		this.spriteSheetHight = 160;
 		this.spriteSheetWidthSprites = 14;
 		this.spriteSheetHightSprites = 10;
+		this.spriteHight = Math.round(this.spriteSheetHight/this.spriteSheetHightSprites);
+		this.spriteWidth = Math.round(this.spriteSheetWidth/this.spriteSheetWidthSprites);
+		this.gameWidth = params.width;
+		this.gameHight = params.hight;
+
 		this.container = document.getElementById("pacman-container");
 
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
-
-		this.gameCanvas = new PIXI.Application({width: 32*28, height: 32*31});
+		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight});
 		this.container.appendChild(this.gameCanvas.view);
 
 		this.createWallSheet();
+		this.loadSpriteSheet();
 		this.levels=params.levels;
 		var boundDraw= this.draw.bind(this);
 		setTimeout(boundDraw,100);
-		PIXI.loader
-    		.add(this.pathToSpriteSheet)
-    		.load(this.onSpriteSheetLoaded.bind(this));
 	}
 /*
 ███████╗██████╗ ██████╗ ██╗████████╗███████╗███████╗██╗  ██╗███████╗███████╗████████╗
@@ -31,13 +33,13 @@ class pacmanRenderer
 ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝   
 
 */
-	onSpriteSheetLoaded()
+	loadSpriteSheet()
 	{
-		var frames = [];
-
-	    for (var i = 0; i < this.spriteSheetHight; i++) {}
-        var val = i < 10 ? '0' + i : i;
-		console.log("Loaded");
+		this.spriteCanvas = new PIXI.Application({width: this.spriteSheetWidth, height: this.spriteSheetHight});
+		var texture = PIXI.Texture.fromImage(		this.pathToSpriteSheet);
+		var spriteSheet = new PIXI.Sprite(texture);
+		this.spriteCanvas.stage.addChild(spriteSheet);
+		this.container.appendChild(this.spriteCanvas.view);
 	}
 
 /*
@@ -59,12 +61,12 @@ class pacmanRenderer
 
 		//отрисовка канваса стен
 		let roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(3, 0x99CCFF, 1);
+		roundBox.lineStyle(2, 0x99CCFF, 1);
 		roundBox.drawRoundedRect(10, 10, 70, 70, 7)
 		this.wallSheet.stage.addChild(roundBox);
 
 		roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(3, 0x99CCFF, 1);
+		roundBox.lineStyle(2, 0x99CCFF, 1);
 		roundBox.drawRoundedRect(16, 16, 58, 58, 7)
 		this.wallSheet.stage.addChild(roundBox);
 
@@ -246,6 +248,11 @@ class pacmanRenderer
 			var levelNumber=0;
 			console.log(this.wallTextures);
 			var level = this.levels[levelNumber];
+
+			var blockHight = Math.round(this.gameHight/level.length);
+			var blockWidth = Math.round(this.gameWidth/level[0].length);
+			console.log(blockWidth);
+
 			level[-1]=[];
 			level[level.length]=[];
 			for (var i=0; i<this.gameCanvas.stage.children.length;i++)
@@ -288,8 +295,10 @@ class pacmanRenderer
 						}
 
 						
-						sprite.x=j*32;
-						sprite.y=i*32;
+						sprite.x = j*blockWidth;
+						sprite.y = i*blockHight;
+						sprite.width = blockWidth;
+						sprite.height = blockHight;
 						this.gameCanvas.stage.addChild(sprite);
 					}
 					else
@@ -297,12 +306,13 @@ class pacmanRenderer
 						if((level[i][j]>1)&&(level[i][j]<6))
 						{
 							var sprite = new PIXI.Sprite(this.otherTextures[level[i][j]]);
-													sprite.x=j*32;
-						sprite.y=i*32;
-						this.gameCanvas.stage.addChild(sprite);	
+							sprite.x = j*blockWidth;
+							sprite.y = i*blockHight;
+							sprite.width = blockWidth;
+							sprite.height = blockHight;
+							this.gameCanvas.stage.addChild(sprite);	
 						}
 					}
-
 				}
 			}
 

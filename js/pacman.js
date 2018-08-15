@@ -41,6 +41,10 @@ class pacman
 		]
 
 		this.renderer= new pacmanRenderer({
+			"pathToSpriteSheet" : 'resources/Pac-Man__Sprite_Sheet.png',
+			"spriteSheetWidth" : 227,
+			"width" : 500,
+			"hight" : 500,
 			"levels":this.levels
 		});
 	}
