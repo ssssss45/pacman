@@ -13,14 +13,44 @@ class pacmanRenderer
 		this.gameHight = params.hight;
 		this.playerSpritesLocations = params.playerSpritesLocations;
 
+		this.scoreContainerHight = params.scoreContainerHight;
 		this.container = document.getElementById(params.container);
 
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
-		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight});
+		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight+this.scoreContainerHight});
 		this.container.appendChild(this.gameCanvas.view);
 
 		this.playerTextures=[];
 		this.currentPlayerSprite = 0;
+
+		//счет
+		this.scoreText=new PIXI.Text('Score: 0',
+			{
+				fontFamily : 'Courier New', 
+				fontSize: Math.floor(this.gameWidth/15), 
+				fill : 0xFFFFFF, 
+				align : 'right',
+				"dropShadow": true,
+				"dropShadowDistance": 10,
+				"dropShadowAlpha": 0.2,
+			});
+		this.scoreText.x=this.gameWidth/2;
+		this.scoreText.y=Math.floor(this.gameHight+this.scoreContainerHight/3);
+
+		//жизни
+		this.lifeText=new PIXI.Text('Lives:',
+			{
+				fontFamily : 'Courier New', 
+				fontSize: Math.floor(this.gameWidth/15), 
+				fill : 0xFFFFFF, 
+				align : 'right',
+				"dropShadow": true,
+				"dropShadowDistance": 10,
+				"dropShadowAlpha": 0.2,
+			});
+		this.lifeText.x=10;
+		this.lifeText.y=Math.floor(this.gameHight+this.scoreContainerHight/3);
+		this.lifeDisplay = [];
 
 		this.createWallSheet();
 		this.loadSpriteSheet();
@@ -30,6 +60,7 @@ class pacmanRenderer
 
 		this.spriteArray = [];
 	}
+
 /*
 ███████╗██████╗ ██████╗ ██╗████████╗███████╗███████╗██╗  ██╗███████╗███████╗████████╗
 ██╔════╝██╔══██╗██╔══██╗██║╚══██╔══╝██╔════╝██╔════╝██║  ██║██╔════╝██╔════╝╚══██╔══╝
@@ -38,13 +69,14 @@ class pacmanRenderer
 ███████║██║     ██║  ██║██║   ██║   ███████╗███████║██║  ██║███████╗███████╗   ██║   
 ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝   
 */
+
 	loadSpriteSheet()
 	{
 		this.spriteCanvas = new PIXI.Application({width: this.spriteSheetWidth, height: this.spriteSheetHight});
 		var texture = PIXI.Texture.fromImage(this.pathToSpriteSheet);
 		var spriteSheet = new PIXI.Sprite(texture);
 		this.spriteCanvas.stage.addChild(spriteSheet);
-		this.container.appendChild(this.spriteCanvas.view);
+	//	this.container.appendChild(this.spriteCanvas.view);
 
 		for (var i=0; i<this.playerSpritesLocations.length; i++)
 		{
@@ -54,6 +86,14 @@ class pacmanRenderer
           		new PIXI.Rectangle(this.spriteWidth*this.playerSpritesLocations[i].y, this.spriteHight*this.playerSpritesLocations[i].x, this.spriteWidth, this.spriteHight)
         		);
         	this.playerTextures.push(playerTexture);
+		}
+
+		for (var i=0; i<3; i++)
+		{
+			var life = new PIXI.Sprite(this.playerTextures[0]);
+			life.x = 500;
+			life.y = 500;
+			this.lifeDisplay.push(life);
 		}
 	}
 
@@ -71,7 +111,7 @@ class pacmanRenderer
 		this.wallsheetDiv = document.createElement('div');
 		this.wallSheet = new PIXI.Application({width: 352, height: 96});
 		this.container.appendChild(this.wallsheetDiv);
-		this.wallsheetDiv.appendChild(this.wallSheet.view);
+		//this.wallsheetDiv.appendChild(this.wallSheet.view);
 
 		//отрисовка канваса стен
 		let roundBox = new PIXI.Graphics();
@@ -162,6 +202,8 @@ class pacmanRenderer
 
 		this.wallTextures=[];
 		this.wallTexture = PIXI.Texture.fromCanvas(this.wallSheet.view, PIXI.SCALE_MODES.LINEAR);
+		var cells = ['2,8,2','...']
+		addCell(2,8,2);
 		//только верх, без соседей
 		this.wallTextures[2] = 
 		   			new PIXI.Texture(
@@ -315,7 +357,6 @@ class pacmanRenderer
 						var sprite = new PIXI.Sprite(this.wallTextures[sum]);	
 					}
 
-					
 					sprite.x = j*this.blockWidth;
 					sprite.y = i*this.blockHight;
 					sprite.width = this.blockWidth;
@@ -335,9 +376,8 @@ class pacmanRenderer
 						this.gameCanvas.stage.addChild(sprite);
 						if ((level[i][j]==2)||(level[i][j]==3))
 							{
-								this.spriteArray[i][j] = sprite;								
+								this.spriteArray[i][j] = sprite;	
 							}	
-
 					}
 
 					if(level[i][j]==6)
@@ -363,6 +403,13 @@ class pacmanRenderer
 		{
 			return sum = sum + mask[dx][dy];
 		}
+
+		for (var i=0; i<3; i++)
+		{
+			this.gameCanvas.stage.addChild(this.lifeDisplay[i]);
+		}
+		this.gameCanvas.stage.addChild(this.lifeText);
+		this.gameCanvas.stage.addChild(this.scoreText);
 		this.gameCanvas.stage.addChild(this.playerSprite);
 	}
 
@@ -379,9 +426,6 @@ class pacmanRenderer
 				this.spriteArray[y][x].destroy();	
 			}
 		}
-
-		//this.playerSprite.x = (x + 0.5) * this.blockWidth;
-		//this.playerSprite.y = (x + 0.5) * this.blockWidth;
 
 		switch (direction)
 		{
@@ -413,7 +457,30 @@ class pacmanRenderer
 				setTimeout(animate,20);
 			}
 		}
+	}
 
+	updateScore(score)
+	{
+		this.scoreText.text="Score: "+score;
+		var repeats = -5;
+		var boundAnimate = animate.bind(this);
+		setTimeout(boundAnimate,20);
+		function animate()
+		{
+			var delta = 1+((25-repeats*repeats)/2000);
+			this.scoreText.scale.x = delta;
+			this.scoreText.scale.y = delta;
+			repeats++;
+			if (repeats!=6)
+			{
+				setTimeout(boundAnimate,20);
+			}
+		}
+	}
+
+	returnContainer()
+	{
+		return this.gameCanvas.view;
 	}
 
 }
