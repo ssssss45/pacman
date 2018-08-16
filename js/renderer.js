@@ -357,11 +357,6 @@ class pacmanRenderer
 			}
 		}
 
-		function addToSum(dx,dy,sum,mask)
-		{
-			return sum = sum + mask[dx][dy];
-		}
-
 		this.gameCanvas.stage.addChild(this.lifeText);
 		this.gameCanvas.stage.addChild(this.scoreText);
 		this.gameCanvas.stage.addChild(this.scoreNumberText);
@@ -369,7 +364,6 @@ class pacmanRenderer
 			{
 				this.gameCanvas.stage.addChild(this.lifeDisplay[i]);
 			}
-
 
 		this.gameCanvas.stage.addChild(this.playerSprite);
 

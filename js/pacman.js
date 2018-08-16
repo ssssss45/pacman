@@ -276,7 +276,7 @@ class character
 			this.direction = direction
 		}
 
-		if(check(this.y+this.dy,this.x+this.dx,level))
+		if((check(this.y+this.dy,this.x+this.dx,level))&&(this.direction!=-1))
 		{
 			if (this.eatsDots) this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.score,this.isPlayer);
 			this.renderer.boundRenderMovement(this.x,this.y,this.dx,this.dy,this.direction);
