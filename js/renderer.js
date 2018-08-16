@@ -382,7 +382,15 @@ class pacmanRenderer
 			this.gameCanvas.stage.addChild(this.lifeDisplay[i]);
 		}
 	}
-
+/*
+███╗   ███╗ ██████╗ ██╗   ██╗███████╗███╗   ███╗███████╗███╗   ██╗████████╗
+████╗ ████║██╔═══██╗██║   ██║██╔════╝████╗ ████║██╔════╝████╗  ██║╚══██╔══╝
+██╔████╔██║██║   ██║██║   ██║█████╗  ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   
+██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   
+██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
+╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
+                                                                          
+*/
 	renderMovement(x,y,direction)
 	{
 		if(((this.playerSprite.x-0.5)!=this.playerLastX)||((this.playerSprite.y-0.5)!=this.playerLastY))
@@ -406,9 +414,9 @@ class pacmanRenderer
 		this.playerSprite.setTexture(this.playerTextures[this.currentPlayerSprite] );
 	}
 
+	//уничтожение спрайта (при "съедении")
 	destroySprite(x,y)
 	{
-		
 		this.spriteArray[x][y].destroy();	
 	}
 
@@ -431,6 +439,12 @@ class pacmanRenderer
 		}
 	}
 
+	stop()
+	{
+
+	}
+
+	//обновление количества жизней
 	setLives(lives)
 	{
 		for(var i = 0; i < this.lifeDisplay.length; i++)
@@ -446,6 +460,7 @@ class pacmanRenderer
 		}
 	}
 
+	//обновление количества очков
 	updateScore(score)
 	{
 		this.scoreNumberText.text=score;
@@ -465,6 +480,7 @@ class pacmanRenderer
 		}
 	}
 
+	//возвращение канваса игры
 	returnContainer()
 	{
 		return this.gameCanvas.view;

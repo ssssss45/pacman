@@ -2,69 +2,27 @@ class pacman
 {
 	constructor(params)
 	{
-		this.testCanvas=[[0,0,0],[0,0,0],[0,0,0]];
-		//-1 - филлер (считается как стена при отрисовке, но не отрисовывается, 0 - пустота, 1 - стена, 2 - бонус, 3 - озверин, 4 - горизонтальные ворота призраков, 5 - вертикальные ворота, 6 - игрок, 10,7,8,9 - монстры
-		this.levels=[
-			[
-				[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-				[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-				[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-				[1,3,1,0,0,1,2,1,0,0,0,1,2,1,1,2,1,0,0,0,1,2,1,0,0,1,3,1],
-				[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-				[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-				[1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
-				[1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
-				[1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
-				[1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
-				[-1,-1,0,0,0,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,0,0,0,-1,-1],
-				[0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
-				[0,0,0,0,0,1,2,1,1,0,0,1,1,4,4,1,1,0,0,1,1,2,1,0,0,0,0,0],
-				[1,1,1,1,1,1,2,1,1,0,0,1,0,0,0,0,1,0,0,1,1,2,1,1,1,1,1,1],
-				[0,0,0,0,0,0,2,0,0,0,0,1,7,8,9,10,1,0,0,0,0,2,0,0,0,0,0,0],
-				[1,1,1,1,1,1,2,1,1,0,0,1,0,0,0,0,1,0,0,1,1,2,1,1,1,1,1,1],
-				[0,0,0,0,0,1,2,1,1,0,0,1,1,1,1,1,1,0,0,1,1,2,1,0,0,0,0,0],
-				[0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
-				[-1,-1,0,0,0,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,0,0,0,-1,-1],
-				[1,1,1,1,1,1,2,0,0,0,1,1,1,1,1,1,1,1,0,0,0,2,1,1,1,1,1,1],
-				[1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
-				[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-				[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
-				[1,3,2,2,1,1,2,2,2,2,2,2,2,6,2,2,2,2,2,2,2,2,1,1,2,2,3,1],
-				[1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
-				[1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
-				[1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
-				[1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
-				[1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
-				[1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-				[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-			]
-			/*[
-			[1,1,1,1,1,1,1,1,1,1,1,1,1],
-			[1,0,0,0,6,0,0,0,0,0,0,0,1],
-			[1,0,0,0,0,0,0,0,0,1,1,0,1],
-			[1,0,0,0,0,0,0,0,0,1,1,0,1],
-			[1,1,1,1,1,1,1,1,1,1,1,1,1]]*/
-		]
-
-		this.container = document.getElementById("pacman-container");
+		//уровни
+		this.levels = params.levels;
+		//DOM контейнер для генерации игры
+		this.container = document.getElementById(params.container);
 
 		this.renderer= new pacmanRenderer({
-			"pathToSpriteSheet" : 'resources/Pac-Man__Sprite_Sheet.png',
-			"spriteSheetWidth" : 227,
-			"spriteSheetHight" : 160,
-			"spriteSheetWidthSprites" : 14,
-			"spriteSheetHightSprites" : 10,
-			"spriteSheetBorderLeft" : 2,
-			"spriteSheetBorderTop" : 0,
-			"lifeMax" : 5,
-			"width" : 400,
-			"hight" : 400,
-			"scoreContainerHight" : 50,
+			"pathToSpriteSheet" : params.pathToSpriteSheet,
+			"spriteSheetWidth" : params.spriteSheetWidth,
+			"spriteSheetHight" : params.spriteSheetHight,
+			"spriteSheetWidthSprites" : params.spriteSheetWidthSprites,
+			"spriteSheetHightSprites" : params.spriteSheetHightSprites,
+			"spriteSheetBorderLeft" : params.spriteSheetBorderLeft,
+			"spriteSheetBorderTop" : params.spriteSheetBorderTop,
+			"lifeMax" : params.lifeMax,
+			"width" : params.width,
+			"hight" : params.hight,
+			"scoreContainerHight" : params.scoreContainerHight,
 			"levels":this.levels,
-			"playerSpritesLocations" : [{x:0,y:0},{x:0,y:1},{x:0,y:2}],
-			"playerDeathSpritesLocations" : [{x:0,y:2},{x:0,y:3},{x:0,y:4},{x:0,y:5},{x:0,y:6},{x:0,y:7},{x:0,y:8},{x:0,y:9},{x:0,y:10},{x:0,y:11},{x:0,y:12},{x:0,y:13}],
-			"container" : "pacman-container",
-			"playerSpeed" : 3 //ticks per move
+			"playerSpritesLocations" : params.playerSpritesLocations,
+			"playerDeathSpritesLocations" : params.playerDeathSpritesLocations,
+			"container" : "pacman-container"
 		});
 
 		this.canvas = this.renderer.returnContainer();
@@ -149,6 +107,7 @@ class pacman
 			{
 				if (this.currentLevel[i][j] == 6)
 				{
+					this.player = new character (true, j, i);
 					this.currentPlayerX = j; 
 					this.currentPlayerY = i;
 				}
@@ -158,8 +117,16 @@ class pacman
 				}
 			}
 		}
-		setInterval(this.gameStep.bind(this),120);
+		setInterval(this.gameStep.bind(this),40);
 		this.renderer.setLives(this.extraLives);
+
+		this.direction = -1;
+		this.newDirection = -1;
+		this.dx = 0;
+		this.dy = 0;
+		this.newdx = 0;
+		this.newdy = 0;
+		this.moveTimer = 0;
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
@@ -173,44 +140,69 @@ class pacman
 	gameStep()
 	{
 		var oldscore = this.score;
-		
 
 		if (this.leftActive)
 		{
-			move(-1,0,0,this);
+			this.newDirection = 0;
+			this.newdx = -1;
+			this.newdy = 0;
 		}
 		else
 		if (this.rightActive)
 		{
-			move(1,0,2,this);
+			this.newDirection = 2;
+			this.newdx = 1;
+			this.newdy = 0;
 		}
-		
+		else
 		if (this.upActive)
 		{
-			move(0,-1,1,this);
+			this.newDirection = 1;
+			this.newdx = 0;
+			this.newdy = -1;
 		}
 		else
 		if (this.downActive)
 		{
-			move(0,1,3,this);
+			this.newDirection = 3;
+			this.newdx = 0;
+			this.newdy = 1;
 		}
 
-		function move (dx,dy, direction,curthis)
-		{	
-			if(check(curthis.currentPlayerY+dy,curthis.currentPlayerX+dx,curthis.currentLevel))
+		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
 			{
-				curthis.score = curthis.score + checkFood(curthis.currentPlayerY + dy ,curthis.currentPlayerX + dx,curthis.currentLevel,curthis.renderer);
-				curthis.currentPlayerX = curthis.currentPlayerX + dx;
-				curthis.currentPlayerY = curthis.currentPlayerY + dy;
+				move(this.newdx,this.newdy,this.newDirection,this);
+				this.moveTimer = -40;
+			}
+
+		this.moveTimer = this.moveTimer + 40;
+					
+
+		function move (dx,dy,direction,curthis)
+		{	
+			if (check(curthis.currentPlayerY+dy,curthis.currentPlayerX+dx,curthis.currentLevel)) {
+				curthis.dx = dx;
+				curthis.dy = dy;
+				curthis.direction = direction
+			}
+			if(check(curthis.currentPlayerY+curthis.dy,curthis.currentPlayerX+curthis.dx,curthis.currentLevel))
+			{
+				curthis.score = curthis.score + checkFood(curthis.currentPlayerY + curthis.dy ,curthis.currentPlayerX + curthis.dx,curthis.currentLevel,curthis.renderer);
+				curthis.currentPlayerX = curthis.currentPlayerX + curthis.dx;
+				curthis.currentPlayerY = curthis.currentPlayerY + curthis.dy;
 				if(curthis.currentPlayerX < 0){curthis.currentPlayerX = curthis.currentLevel[0].length - 1}
 				else
 				if(curthis.currentPlayerX > curthis.currentLevel[0].length-1){curthis.currentPlayerX = 0}
-				else
+
 				if(curthis.currentPlayerY < 0){curthis.currentPlayerY = curthis.currentLevel.length-1}	
 				else
 				if(curthis.currentPlayerY > curthis.currentLevel.length){curthis.currentPlayerY = 0}	
 
 				curthis.renderer.renderMovement(curthis.currentPlayerX,curthis.currentPlayerY,direction);
+			}
+			else
+			{
+				curthis.renderer.stop();
 			}	
 		}
 
@@ -233,10 +225,9 @@ class pacman
 				level[dx][dy] = 0;
 				renderer.destroySprite(dx,dy);
 				return 1;
-				}
-				else return 0;
-		}
-		
+			}
+			else return 0;
+		}	
 	}
 
 	generateLevelClearEvent()
@@ -267,13 +258,79 @@ class pacman
 	{
 
 	}
+}
+/*
+ ██████╗██╗  ██╗ █████╗ ██████╗         ██████╗██╗      █████╗ ███████╗███████╗
+██╔════╝██║  ██║██╔══██╗██╔══██╗       ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
+██║     ███████║███████║██████╔╝       ██║     ██║     ███████║███████╗███████╗
+██║     ██╔══██║██╔══██║██╔══██╗       ██║     ██║     ██╔══██║╚════██║╚════██║
+╚██████╗██║  ██║██║  ██║██║  ██║██╗    ╚██████╗███████╗██║  ██║███████║███████║
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+*/
 
+class character
+{
+	constructor(params)
+	{
+		this.isPlayer = params.isPlayer;
+		this.x = params.x;
+		this.y = params.y;
+		this.renderer = params.renderer;
+	}
+
+	move (dx,dy,direction,level)
+	{	
+		function check(dx,dy,level)
+		{
+			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
+		}
+
+		function checkFood(dx,dy,level,renderer)
+		{
+			if (level[dx][dy]==2) 
+			{
+				level[dx][dy] = 0;
+				renderer.destroySprite(dx,dy);
+				return 1;
+			}
+			else return 0;
+		}
+
+		if (check(this.y+dy,this.x+dx,level)) {
+			this.dx = dx;
+			this.dy = dy;
+			this.direction = direction
+		}
+		if(check(this.y+this.dy,this.x+this.dx,level))
+		{
+			this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer);
+			this.x = this.x + this.dx;
+			this.y = this.y + this.dy;
+			if(this.x < 0){this.x = level[0].length - 1}
+			else
+			if(this.x > level[0].length-1){this.x = 0}
+
+			if(this.y < 0){this.y = level.length-1}	
+			else
+			if(this.y > level.length){this.y = 0}	
+
+			this.renderer.renderMovement(this.x,this.y,direction);
+			return true;
+		}
+		else
+		{
+			return false;
+		}	
+	}
 }
 
 class enemy
 {
 	constructor(params)
 	{
-		this.ressurects = params.ressurects;
+		this.character = new character(false, params.x, params.y);
+		this.eatsDots = params.eatsDots;
+		this.speed = params.speed;
+		this.killsPlayer = params.killsPlayer;
 	}
 }
