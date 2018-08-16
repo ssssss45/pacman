@@ -112,10 +112,9 @@ class pacman
 							"x" : j,
 							"y" : i,
 							"renderer" : this.renderer,
-							"eatsDots" : true
-						});
-					this.currentPlayerX = j; 
-					this.currentPlayerY = i;
+							"eatsDots" : true,
+							"score" : this.score
+							});
 				}
 				if (this.currentLevel[i][j] == 2)
 				{
@@ -126,10 +125,7 @@ class pacman
 		setInterval(this.gameStep.bind(this),40);
 		this.renderer.setLives(this.extraLives);
 
-		this.direction = -1;
 		this.newDirection = -1;
-		this.dx = 0;
-		this.dy = 0;
 		this.newdx = 0;
 		this.newdy = 0;
 		this.moveTimer = 0;
@@ -189,22 +185,6 @@ class pacman
 			this.renderer.updateScore(this.score);
 			if (this.currentLevelFood==0)this.generateLevelClearEvent();
 		}
-
-		function check(dx,dy,level)
-		{
-			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
-		}
-
-		function checkFood(dx,dy,level,renderer)
-		{
-			if (level[dx][dy]==2) 
-			{
-				level[dx][dy] = 0;
-				renderer.destroySprite(dx,dy);
-				return 1;
-			}
-			else return 0;
-		}	
 	}
 /*
 ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
@@ -265,6 +245,7 @@ class character
 		this.direction = -1;
 		this.dx = 0;
 		this.dy = 0;
+		this.score = params.score;
 	}
 
 	move (dx,dy,direction,level)
@@ -274,12 +255,17 @@ class character
 			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
 		}
 
-		function checkFood(dx,dy,level,renderer)
+		function checkFood(dx,dy,level,renderer,score,isPlayer)
 		{
 			if (level[dx][dy]==2) 
 			{
 				level[dx][dy] = 0;
 				renderer.destroySprite(dx,dy);
+				if (isPlayer)
+				{
+					score++;
+					renderer.updateScore(score);
+				}
 				return 1;
 			}
 			else return 0;
@@ -294,7 +280,8 @@ class character
 
 		if(check(this.y+this.dy,this.x+this.dx,level))
 		{
-			this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer);
+			if (this.eatsDots) this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.score,this.isPlayer);
+			this.renderer.renderMovement(this.x,this.y,this.dx,this.dy,this.direction);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
 			if(this.x < 0){this.x = level[0].length - 1}
@@ -303,9 +290,7 @@ class character
 
 			if(this.y < 0){this.y = level.length-1}	
 			else
-			if(this.y > level.length){this.y = 0}	
-
-			this.renderer.renderMovement(this.x,this.y,direction);
+			if(this.y > level.length){this.y = 0}			
 		}
 		else
 		{

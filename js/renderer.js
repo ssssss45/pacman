@@ -223,48 +223,31 @@ class pacmanRenderer
 		this.wallTexture = PIXI.Texture.fromCanvas(this.wallSheet.view, PIXI.SCALE_MODES.LINEAR);
 		var cells = ['2,8,2','64,8,0','8,7,2','16,5,2','66,0,1','74,0,1','82,0,1','24,1,0','26,1,0','88,1,0','80,0,0','72,2,0','18,0,2','10,2,2']
 
-		fillCells(cells,this);
+		fillCells(this.wallTextures, cells, this.wallTexture);
 
-		function fillCells(cells,currThis)
+		//бонусы, озверин и стены призраков
+        this.otherTextures = [];
+        cells = ['2,10,2','3,9,2','4,9,1','5,9,0']
+		fillCells(this.otherTextures, cells, this.wallTexture);
+
+		//функии заполнения массива текстур
+        function fillCells(array, cells, texture)
 		{
 			for (var i=0; i<cells.length; i++)
 			{
 				var current = cells[i].split(',');
-				addCell(Number(current[0]),Number(current[1]),Number(current[2]),currThis);
+				addCell(array, Number(current[0]),Number(current[1]),Number(current[2]), texture);
 			}
 		}
 
-		function addCell(cell, x, y,currThis)
+		function addCell(array,cell, x, y, texture)
 		{
-			currThis.wallTextures[cell] = 
+			array[cell] = 
 		   			new PIXI.Texture(
-          			currThis.wallTexture,
+          			texture,
           			new PIXI.Rectangle(32*x, 32*y, 32, 32)
         			);
 		}
-
-		//бонусы, озверин и стены призраков
-        this.otherTextures = [];
-        this.otherTextures[2] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*10, 32*2, 32, 32)
-        			);
-        this.otherTextures[3] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*9, 32*2, 32, 32)
-        			);
-        this.otherTextures[4] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*9, 32*1, 32, 32)
-        			);
-        this.otherTextures[5] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*9, 32*0, 32, 32)
-        			);
 	}	
 
 /*
@@ -353,15 +336,14 @@ class pacmanRenderer
 
 					if(level[i][j]==6)
 					{
-						this.playerSprite = new PIXI.Sprite(this.playerTextures[0]);
+						this.playerSprite = new PIXI.extras.AnimatedSprite(this.playerTextures);
 						this.playerSprite.x = (j+0.5)*this.blockWidth;
 						this.playerSprite.y = (i+0.5)*this.blockHight;
 						this.playerSprite.width = this.blockWidth;
 						this.playerSprite.height = this.blockHight;
 						this.playerSprite.pivot.x = this.blockWidth / 2;
 						this.playerSprite.pivot.y = this.blockHight / 2;
-						this.playerLastX = this.playerSprite.x;
-						this.playerLastY = this.playerSprite.y;
+						this.spriteArray[i][j] = this.playerSprite;
 					}
 				}
 			}
@@ -391,27 +373,28 @@ class pacmanRenderer
 ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
                                                                           
 */
-	renderMovement(x,y,direction)
+	renderMovement(x,y,dx,dy,direction)
 	{
-		if(((this.playerSprite.x-0.5)!=this.playerLastX)||((this.playerSprite.y-0.5)!=this.playerLastY))
-		{
-			this.animatePlayer(this.playerLastX, this.playerLastY, (x + 0.5) * this.
-				blockWidth, (y + 0.5) * this.blockHight, this.playerSprite);
-			this.playerLastX = (x + 0.5) * this.blockWidth;
-			this.playerLastY = (y + 0.5) * this.blockHight;
-		}
+		var sprite = this.spriteArray[y][x];
+
+		this.animateChar(x, y, dx*this.blockWidth, dy*this.blockHight, sprite);
+		this.spriteArray[y+dy][x+dx] = this.spriteArray[y][x];
+		this.spriteArray[y][x] = undefined;
 
 		switch (direction)
 		{
-			case 0: this.playerSprite.rotation = 3.14; break;
-			case 1: this.playerSprite.rotation = -1.57; break;
-			case 2: this.playerSprite.rotation = 0; break;
-			case 3: this.playerSprite.rotation = 1.57; break;
+			case 0: sprite.rotation = 3.14; break;
+			case 1: sprite.rotation = -1.57; break;
+			case 2: sprite.rotation = 0; break;
+			case 3: sprite.rotation = 1.57; break;
 		}
 
-		this.currentPlayerSprite++;
-		if (this.currentPlayerSprite==this.playerTextures.length) this.currentPlayerSprite = 0;
-		this.playerSprite.setTexture(this.playerTextures[this.currentPlayerSprite] );
+		if (sprite == this.playerSprite)
+		{
+			this.currentPlayerSprite++;
+			if (this.currentPlayerSprite == this.playerTextures.length) this.currentPlayerSprite = 0;
+			sprite.setTexture(this.playerTextures[this.currentPlayerSprite] );
+		}
 	}
 
 	//уничтожение спрайта (при "съедении")
@@ -420,10 +403,12 @@ class pacmanRenderer
 		this.spriteArray[x][y].destroy();	
 	}
 
-	animatePlayer(oldx,oldy,newx,newy,sprite)
+	animateChar(oldx,oldy,dx,dy,sprite)
 	{
-		var speedX = (newx-oldx)/6;
-		var speedY = (newy-oldy)/6;
+		var newx = oldx + dx;
+		var newy = oldy + dy;
+		var speedX = (newx - oldx)/6;
+		var speedY = (newy - oldy)/6;
 
 		var repeats=0;			
 		animate();
@@ -444,6 +429,14 @@ class pacmanRenderer
 
 	}
 
+/*
+██╗     ██╗██╗   ██╗███████╗███████╗
+██║     ██║██║   ██║██╔════╝██╔════╝
+██║     ██║██║   ██║█████╗  ███████╗
+██║     ██║╚██╗ ██╔╝██╔══╝  ╚════██║
+███████╗██║ ╚████╔╝ ███████╗███████║
+╚══════╝╚═╝  ╚═══╝  ╚══════╝╚══════╝
+*/
 	//обновление количества жизней
 	setLives(lives)
 	{
@@ -459,6 +452,15 @@ class pacmanRenderer
 			}
 		}
 	}
+
+/*
+███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████╗██║     ██║   ██║██████╔╝█████╗  
+╚════██║██║     ██║   ██║██╔══██╗██╔══╝  
+███████║╚██████╗╚██████╔╝██║  ██║███████╗
+╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝                                      
+*/
 
 	//обновление количества очков
 	updateScore(score)
