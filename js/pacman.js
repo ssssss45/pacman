@@ -56,6 +56,7 @@ class pacman
 			"spriteSheetHightSprites" : 10,
 			"spriteSheetBorderLeft" : 2,
 			"spriteSheetBorderTop" : 0,
+			"lifeMax" : 5,
 			"width" : 400,
 			"hight" : 400,
 			"scoreContainerHight" : 50,
@@ -158,6 +159,7 @@ class pacman
 			}
 		}
 		setInterval(this.gameStep.bind(this),120);
+		this.renderer.setLives(this.extraLives);
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
