@@ -21,7 +21,9 @@ states:
 	}
 
 	setPlaying()
-	{}
+	{
+		this.state = 2;
+	}
 
 	setPause()
 	{
@@ -93,6 +95,6 @@ states:
 
 	getstate()
 	{
-
+		return this.state;
 	}
 }

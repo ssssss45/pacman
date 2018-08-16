@@ -15,6 +15,8 @@ class pacman
 			"spriteSheetHightSprites" : params.spriteSheetHightSprites,
 			"spriteSheetBorderLeft" : params.spriteSheetBorderLeft,
 			"spriteSheetBorderTop" : params.spriteSheetBorderTop,
+			"spriteSheetBorderBottom" : params.spriteSheetBorderBottom,
+			"spriteSheetBorderRight" : params.spriteSheetBorderRight,
 			"lifeMax" : params.lifeMax,
 			"width" : params.width,
 			"hight" : params.hight,
@@ -39,6 +41,7 @@ class pacman
 		addKeyToController("right",[39],this.keycon);
 		addKeyToController("up",[38],this.keycon);
 		addKeyToController("down",[40],this.keycon);
+		addKeyToController("x",[88],this.keycon);
 		function addKeyToController(name,keys,keycon)
 		{
 			var key={
@@ -57,8 +60,8 @@ class pacman
 			this.activateListenerActions.bind(this));
 		this.canvas.addEventListener("controls:deactivate",
 			this.deactivateListenerActions.bind(this));
-
-		this.gameStart();
+		this.currentLevelNumber = -1;
+		setTimeout(this.gameStart.bind(this),100);
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -87,6 +90,7 @@ class pacman
 			case "right": this.rightActive = false; break;
 			case "down": this.downActive = false; break;
 			case "up": this.upActive = false; break;
+			case "x": this.currentLevelFood = 1; break;
 		}
 	}
 /*
@@ -99,45 +103,53 @@ class pacman
 */
 	gameStart()
 	{
+		this.renderer.setLives(this.extraLives);
+		document.addEventListener("Pacman: level clear", this.nextLevel.bind(this));
+		this.nextLevel();
+	}
+
+	nextLevel()
+	{
+		this.renderer.destroyLevel();
+		this.currentLevelNumber++;
+		if (this.currentLevelNumber == this.levels.length)
+		{
+			this.currentLevelNumber = 0;
+		}
+
 		this.currentLevelFood = 0;
-		this.currentLevel = JSON.parse(JSON.stringify(this.levels[0]));
+
+		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.currentLevelNumber]));
 		this.currentLevel[this.currentLevel.length] = [];
 		for (var i=0; i<this.currentLevel.length;i++)
+		{
+			for (var j=0; j<this.currentLevel[0].length;j++)
 			{
-				for (var j=0; j<this.currentLevel[0].length;j++)
+				if (this.currentLevel[i][j] == 6)
 				{
-					if (this.currentLevel[i][j] == 6)
-					{
-						this.player = new character ({
-								"isPlayer" : true,
-								"x" : j,
-								"y" : i,
-								"renderer" : this.renderer,
-								"eatsDots" : true,
-								"score" : this.score
-								});
-					}
-					if (this.currentLevel[i][j] == 2)
-					{
-						this.currentLevelFood++; 
-					}
+					this.player = new character ({
+							"isPlayer" : true,
+							"x" : j,
+							"y" : i,
+							"renderer" : this.renderer,
+							"eatsDots" : true,
+							"score" : this.score
+							});
+				}
+				if (this.currentLevel[i][j] == 2)
+				{
+					this.currentLevelFood++; 
 				}
 			}
-		setInterval(this.gameStep.bind(this),40);
-		this.renderer.setLives(this.extraLives);
-
+		}
+		this.renderer.boundDraw(this.currentLevelNumber);
 		this.newDirection = -1;
 		this.newdx = 0;
 		this.newdy = 0;
 		this.moveTimer = 0;
-		document.addEventListener("Pacman: level clear", this.nextLevel);
-		setTimeout(this.renderer.boundDraw,30);
-	}
+		this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
 
-
-	nextLevel()
-	{
-
+		this.stateMachine.setPlaying();
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
@@ -150,49 +162,55 @@ class pacman
 */
 	gameStep()
 	{
-		var oldscore = this.score;
+		if(this.stateMachine.getstate() == 2)
+		{
+			var oldscore = this.player.score;
 
-		if (this.leftActive)
-		{
-			this.newDirection = 0;
-			this.newdx = -1;
-			this.newdy = 0;
-		}
-		else
-		if (this.rightActive)
-		{
-			this.newDirection = 2;
-			this.newdx = 1;
-			this.newdy = 0;
-		}
-		else
-		if (this.upActive)
-		{
-			this.newDirection = 1;
-			this.newdx = 0;
-			this.newdy = -1;
-		}
-		else
-		if (this.downActive)
-		{
-			this.newDirection = 3;
-			this.newdx = 0;
-			this.newdy = 1;
-		}
-
-		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
+			if (this.leftActive)
 			{
-				this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel);
-				this.moveTimer = -40;
+				this.newDirection = 0;
+				this.newdx = -1;
+				this.newdy = 0;
+			}
+			else
+			if (this.rightActive)
+			{
+				this.newDirection = 2;
+				this.newdx = 1;
+				this.newdy = 0;
+			}
+			else
+			if (this.upActive)
+			{
+				this.newDirection = 1;
+				this.newdx = 0;
+				this.newdy = -1;
+			}
+			else
+			if (this.downActive)
+			{
+				this.newDirection = 3;
+				this.newdx = 0;
+				this.newdy = 1;
 			}
 
-		this.moveTimer = this.moveTimer + 40;
+			if ((this.newDirection != -1)&&(this.moveTimer >= 120))
+				{
+					this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel);
+					this.moveTimer = -40;
+				}
 
-		if (oldscore!=this.score)
-		{
-			this.currentLevelFood--;
-			this.renderer.updateScore(this.score);
-			if (this.currentLevelFood==0)this.generateLevelClearEvent();
+			this.moveTimer = this.moveTimer + 40;
+			if (oldscore != this.player.score)
+			{
+				this.score = this.player.score;
+				this.currentLevelFood--;
+				if (this.currentLevelFood == 0)
+					{
+						clearInterval(this.currentGameInterval);
+						setTimeout(this.stateMachine.setLevelClearScreen,120);
+					}
+			}
 		}
 	}
 
@@ -244,7 +262,7 @@ class character
 				if (isPlayer)
 				{
 					score++;
-					renderer.updateScore(score);
+					renderer.boundUpdateScore(score);
 				}
 				return 1;
 			}
@@ -261,7 +279,7 @@ class character
 		if(check(this.y+this.dy,this.x+this.dx,level))
 		{
 			if (this.eatsDots) this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.score,this.isPlayer);
-			this.renderer.renderMovement(this.x,this.y,this.dx,this.dy,this.direction);
+			this.renderer.boundRenderMovement(this.x,this.y,this.dx,this.dy,this.direction);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
 			if(this.x < 0){this.x = level[0].length - 1}
@@ -301,5 +319,6 @@ class enemy
 						});
 		this.speed = params.speed;
 		this.killsPlayer = params.killsPlayer;
+		this.move = this.character.move;
 	}
 }

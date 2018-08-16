@@ -11,8 +11,8 @@ class pacmanRenderer
 		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
 		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
 
-		this.spriteHight = (this.spriteSheetHight - this.spriteSheetBorderTop)/this.spriteSheetHightSprites;
-		this.spriteWidth = (this.spriteSheetWidth - this.spriteSheetBorderLeft)/this.spriteSheetWidthSprites;
+		this.spriteHight = (this.spriteSheetHight - this.spriteSheetBorderTop - params.spriteSheetBorderBottom)/this.spriteSheetHightSprites;
+		this.spriteWidth = (this.spriteSheetWidth - this.spriteSheetBorderLeft - params.spriteSheetBorderRight)/this.spriteSheetWidthSprites;
 
 		this.lifemax = params.lifeMax;
 		this.gameWidth = params.width;
@@ -28,6 +28,10 @@ class pacmanRenderer
 
 		this.playerTextures=[];
 		this.currentPlayerSprite = 0;
+		this.firstDraw = true;
+
+		this.boundUpdateScore = this.updateScore.bind(this);
+		this.boundRenderMovement = this.renderMovement.bind(this);
 
 		//счет
 		this.scoreText=new PIXI.Text('Score:',
@@ -42,6 +46,7 @@ class pacmanRenderer
 			});
 		this.scoreText.x=this.gameWidth/2;
 		this.scoreText.y=Math.floor(this.gameHight+this.scoreContainerHight/3);
+		this.scoreText.notDestroy = true;
 
 		this.scoreNumberText=new PIXI.Text('0',
 			{
@@ -55,6 +60,7 @@ class pacmanRenderer
 			});
 		this.scoreNumberText.x = this.gameWidth/2 + this.scoreText.width;
 		this.scoreNumberText.y = Math.floor(this.gameHight+this.scoreContainerHight/3);
+		this.scoreNumberText.notDestroy = true;
 
 		//жизни
 		this.lifeText=new PIXI.Text('Lives:',
@@ -70,6 +76,7 @@ class pacmanRenderer
 		this.lifeText.x = 10;
 		this.lifeText.y = Math.floor(this.gameHight+this.scoreContainerHight/3);
 		this.lifeDisplay = [];
+		this.lifeText.notDestroy = true;
 
 		this.createWallSheet();
 		this.loadSpriteSheet();
@@ -112,6 +119,7 @@ class pacmanRenderer
 			var life = new PIXI.Sprite(this.playerTextures[0]);
 			life.x = this.lifeText.width+(i*life.width);
 			life.y = this.lifeText.y+life.height/2;
+			life.notDestroy = true;
 			this.lifeDisplay.push(life);
 		}
 	}
@@ -259,22 +267,18 @@ class pacmanRenderer
 ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚══╝╚══╝                               
 */
 
-
 	//отрисовка уровня
-	draw()
+	draw(levelNo)
 	{
-		this.levelNumber=0;
-		var level = this.levels[this.levelNumber];
+		this.levelNumber = levelNo;
+		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.levelNumber]));
+		var level = this.currentLevel;
 
-		this.blockHight = Math.round(this.gameHight/level.length);
-		this.blockWidth = Math.round(this.gameWidth/level[0].length);
+		this.blockHight = this.gameHight/level.length;
+		this.blockWidth = this.gameWidth/level[0].length;
 
 		level[-1]=[];
 		level[level.length]=[];
-		for (var i=0; i<this.gameCanvas.stage.children.length;i++)
-		{
-			this.gameCanvas.stage.children[i].destroy();
-		}
 		var sum;
 		for (var i=0; i<level.length;i++)
 		{
@@ -357,11 +361,28 @@ class pacmanRenderer
 		this.gameCanvas.stage.addChild(this.lifeText);
 		this.gameCanvas.stage.addChild(this.scoreText);
 		this.gameCanvas.stage.addChild(this.scoreNumberText);
-		this.gameCanvas.stage.addChild(this.playerSprite);
-
 		for (var i=0; i<this.lifemax; i++)
+			{
+				this.gameCanvas.stage.addChild(this.lifeDisplay[i]);
+			}
+
+
+		this.gameCanvas.stage.addChild(this.playerSprite);
+	}
+
+	destroyLevel()
+	{
+		var i =0;
+		while (this.gameCanvas.stage.children.length>i)
 		{
-			this.gameCanvas.stage.addChild(this.lifeDisplay[i]);
+			if (this.gameCanvas.stage.children[i].notDestroy == true)
+			{
+				i++;
+			}
+			else
+			{
+				this.gameCanvas.stage.children[i].destroy();
+			}
 		}
 	}
 /*
@@ -376,7 +397,7 @@ class pacmanRenderer
 	renderMovement(x,y,dx,dy,direction)
 	{
 		var sprite = this.spriteArray[y][x];
-		var level = this.levels[this.levelNumber]
+		var level = this.currentLevel;
 		var visibilityMarker = true;
 
 		if (x + dx == -1) {dx = level[0].length - 1; visibilityMarker = false}
