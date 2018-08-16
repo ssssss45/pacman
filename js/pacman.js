@@ -99,29 +99,30 @@ class pacman
 */
 	gameStart()
 	{
-	this.currentLevelFood = 0;
-	this.currentLevel = JSON.parse(JSON.stringify(this.levels[0]));
+		this.currentLevelFood = 0;
+		this.currentLevel = JSON.parse(JSON.stringify(this.levels[0]));
+		this.currentLevel[this.currentLevel.length] = [];
 		for (var i=0; i<this.currentLevel.length;i++)
-		{
-			for (var j=0; j<this.currentLevel[0].length;j++)
 			{
-				if (this.currentLevel[i][j] == 6)
+				for (var j=0; j<this.currentLevel[0].length;j++)
 				{
-					this.player = new character ({
-							"isPlayer" : true,
-							"x" : j,
-							"y" : i,
-							"renderer" : this.renderer,
-							"eatsDots" : true,
-							"score" : this.score
-							});
-				}
-				if (this.currentLevel[i][j] == 2)
-				{
-					this.currentLevelFood++; 
+					if (this.currentLevel[i][j] == 6)
+					{
+						this.player = new character ({
+								"isPlayer" : true,
+								"x" : j,
+								"y" : i,
+								"renderer" : this.renderer,
+								"eatsDots" : true,
+								"score" : this.score
+								});
+					}
+					if (this.currentLevel[i][j] == 2)
+					{
+						this.currentLevelFood++; 
+					}
 				}
 			}
-		}
 		setInterval(this.gameStep.bind(this),40);
 		this.renderer.setLives(this.extraLives);
 
@@ -129,6 +130,14 @@ class pacman
 		this.newdx = 0;
 		this.newdy = 0;
 		this.moveTimer = 0;
+		document.addEventListener("Pacman: level clear", this.nextLevel);
+		setTimeout(this.renderer.boundDraw,30);
+	}
+
+
+	nextLevel()
+	{
+
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
@@ -186,44 +195,13 @@ class pacman
 			if (this.currentLevelFood==0)this.generateLevelClearEvent();
 		}
 	}
-/*
-███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
-██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
-█████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
-██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ╚════██║
-███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ███████║
-╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
-*/
-
-	generateLevelClearEvent()
-	{
-		var event = new CustomEvent("Pacman level clear");
-		document.dispatchEvent(event);	
-	}
-
-	generateGameOverEvent()
-	{
-		var event = new CustomEvent("Pacman game over");
-		document.dispatchEvent(event);	
-	}
-
-	generateGamePauseEvent()
-	{
-		var event = new CustomEvent("Pacman game pause");
-		document.dispatchEvent(event);	
-	}
-
-	generateGameStartEvent()
-	{
-		var event = new CustomEvent("Pacman game start");
-		document.dispatchEvent(event);	
-	}
 
 	generateEnemy()
 	{
 
 	}
 }
+
 /*
  ██████╗██╗  ██╗ █████╗ ██████╗         ██████╗██╗      █████╗ ███████╗███████╗
 ██╔════╝██║  ██║██╔══██╗██╔══██╗       ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -252,11 +230,13 @@ class character
 	{	
 		function check(dx,dy,level)
 		{
+			if (level[dx]==undefined) return true;
 			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
 		}
 
 		function checkFood(dx,dy,level,renderer,score,isPlayer)
 		{
+			if (level[dx]==undefined) return 0;
 			if (level[dx][dy]==2) 
 			{
 				level[dx][dy] = 0;
@@ -290,7 +270,7 @@ class character
 
 			if(this.y < 0){this.y = level.length-1}	
 			else
-			if(this.y > level.length){this.y = 0}			
+			if(this.y > level.length -1){this.y = 0}			
 		}
 		else
 		{

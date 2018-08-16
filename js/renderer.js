@@ -74,8 +74,8 @@ class pacmanRenderer
 		this.createWallSheet();
 		this.loadSpriteSheet();
 		this.levels=params.levels;
-		var boundDraw= this.draw.bind(this);
-		setTimeout(boundDraw,200);
+		this.boundDraw= this.draw.bind(this);
+		//setTimeout(boundDraw,200);
 
 		this.spriteArray = [];
 	}
@@ -263,8 +263,8 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw()
 	{
-		var levelNumber=0;
-		var level = this.levels[levelNumber];
+		this.levelNumber=0;
+		var level = this.levels[this.levelNumber];
 
 		this.blockHight = Math.round(this.gameHight/level.length);
 		this.blockWidth = Math.round(this.gameWidth/level[0].length);
@@ -376,8 +376,17 @@ class pacmanRenderer
 	renderMovement(x,y,dx,dy,direction)
 	{
 		var sprite = this.spriteArray[y][x];
+		var level = this.levels[this.levelNumber]
+		var visibilityMarker = true;
 
-		this.animateChar(x, y, dx*this.blockWidth, dy*this.blockHight, sprite);
+		if (x + dx == -1) {dx = level[0].length - 1; visibilityMarker = false}
+		else if (x + dx == level[0].length) {dx = -level[0].length + 1; visibilityMarker = false}
+
+		if (y + dy == -1) {dy = level.length - 1; visibilityMarker = false}
+		else if (y + dy == level.length) {dy = -level.length + 1; visibilityMarker = false}	
+		
+		sprite.visible = visibilityMarker;
+		this.animateChar(x, y, dx * this.blockWidth, dy * this.blockHight, sprite);
 		this.spriteArray[y+dy][x+dx] = this.spriteArray[y][x];
 		this.spriteArray[y][x] = undefined;
 
@@ -407,9 +416,12 @@ class pacmanRenderer
 	{
 		var newx = oldx + dx;
 		var newy = oldy + dy;
+
+		//if (newx == -1) newx = level.length;
 		var speedX = (newx - oldx)/6;
 		var speedY = (newy - oldy)/6;
 
+		
 		var repeats=0;			
 		animate();
 		function animate()
@@ -428,7 +440,6 @@ class pacmanRenderer
 	{
 
 	}
-
 /*
 ██╗     ██╗██╗   ██╗███████╗███████╗
 ██║     ██║██║   ██║██╔════╝██╔════╝
