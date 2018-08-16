@@ -202,76 +202,28 @@ class pacmanRenderer
 
 		this.wallTextures=[];
 		this.wallTexture = PIXI.Texture.fromCanvas(this.wallSheet.view, PIXI.SCALE_MODES.LINEAR);
-		var cells = ['2,8,2','...']
-		addCell(2,8,2);
-		//только верх, без соседей
-		this.wallTextures[2] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*8, 32*2, 32, 32)
-        			);
-        //только низ, без соседей
-        this.wallTextures[64] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*8, 32*0, 32, 32)
-        			);
-		//только лево, без соседей
-		this.wallTextures[8] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*7, 32*2, 32, 32)
-        			);
+		var cells = ['2,8,2','64,8,0','8,7,2','16,5,2','66,0,1','74,0,1','82,0,1','24,1,0','26,1,0','88,1,0','80,0,0','72,2,0','18,0,2','10,2,2']
 
-        //только право, без соседей
-        this.wallTextures[16] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*5, 32*2, 32, 32)
-        			);
+		fillCells(cells,this);
 
-        //верх и низ, без соседей
-        this.wallTextures[66] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*0, 32*1, 32, 32)
-        			);
-		this.wallTextures[74] = this.wallTextures[66];
-		this.wallTextures[82] = this.wallTextures[66];
+		function fillCells(cells,currThis)
+		{
+			for (var i=0; i<cells.length; i++)
+			{
+				var current = cells[i].split(',');
+				addCell(Number(current[0]),Number(current[1]),Number(current[2]),currThis);
+			}
+		}
 
-        //лево и право, без соседей			
-        this.wallTextures[24] = 
+		function addCell(cell, x, y,currThis)
+		{
+			currThis.wallTextures[cell] = 
 		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*1, 32*0, 32, 32)
+          			currThis.wallTexture,
+          			new PIXI.Rectangle(32*x, 32*y, 32, 32)
         			);
-        this.wallTextures[26] = this.wallTextures[24];
-        this.wallTextures[88] = this.wallTextures[24];
-		
-        //снизу и справа без соседей
-		this.wallTextures[80] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*0, 32*0, 32, 32)
-        			);
-        //снизу и слева	без соседей		
-		this.wallTextures[72] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*2, 32*0, 32, 32)
-        			);
-        //сверху и справа без соседей			
-		this.wallTextures[18] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*0, 32*2, 32, 32)
-        			);
-        //сверху и слева без соседей			
-		this.wallTextures[10] = 
-		   			new PIXI.Texture(
-          			this.wallTexture,
-          			new PIXI.Rectangle(32*2, 32*2, 32, 32)
-        			);
+		}
+
 		//бонусы, озверин и стены призраков
         this.otherTextures = [];
         this.otherTextures[2] = 
