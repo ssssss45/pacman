@@ -29,7 +29,7 @@ class pacman
 
 		this.canvas = this.renderer.returnContainer();
 
-		this.extraLives = params.extraLives || 2;
+		this.extraLives = params.startExtraLives || 2;
 
 		//стейт машина
 		this.stateMachine = new pacmanStateMachine();
@@ -110,7 +110,6 @@ class pacman
 
 	nextLevel()
 	{
-		this.renderer.destroyLevel();
 		this.currentLevelNumber++;
 		if (this.currentLevelNumber == this.levels.length)
 		{
@@ -208,7 +207,8 @@ class pacman
 				if (this.currentLevelFood == 0)
 					{
 						clearInterval(this.currentGameInterval);
-						setTimeout(this.stateMachine.setLevelClearScreen,120);
+						setTimeout(this.renderer.boundDestroyLevel,120);
+						setTimeout(this.stateMachine.setLevelClearScreen,320);
 					}
 			}
 		}

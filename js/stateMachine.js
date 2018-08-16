@@ -91,6 +91,11 @@ states:
 		{
 			this.setLookHighScore();
 		}
+
+		if ((state==6)||(state=="levelClear"))
+		{
+			this.setLevelClearScreen();
+		}
 	}
 
 	getstate()

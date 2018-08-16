@@ -31,7 +31,8 @@ class pacmanRenderer
 		this.firstDraw = true;
 
 		this.boundUpdateScore = this.updateScore.bind(this);
-		this.boundRenderMovement = this.renderMovement.bind(this);
+		this.boundRenderMovement = this.renderMovement.bind(this)
+		this.boundDestroyLevel = this.destroyLevel.bind(this);
 
 		//счет
 		this.scoreText=new PIXI.Text('Score:',
@@ -319,6 +320,7 @@ class pacmanRenderer
 					sprite.y = i*this.blockHight;
 					sprite.width = this.blockWidth;
 					sprite.height = this.blockHight;
+					sprite.alpha = 0;
 					this.gameCanvas.stage.addChild(sprite);
 				}
 				else
@@ -331,6 +333,7 @@ class pacmanRenderer
 						sprite.y = i*this.blockHight;
 						sprite.width = this.blockWidth;
 						sprite.height = this.blockHight;
+						sprite.alpha = 0;
 						this.gameCanvas.stage.addChild(sprite);
 						if ((level[i][j]==2)||(level[i][j]==3))
 							{
@@ -347,6 +350,7 @@ class pacmanRenderer
 						this.playerSprite.height = this.blockHight;
 						this.playerSprite.pivot.x = this.blockWidth / 2;
 						this.playerSprite.pivot.y = this.blockHight / 2;
+						this.playerSprite.alpha = 0;
 						this.spriteArray[i][j] = this.playerSprite;
 					}
 				}
@@ -368,20 +372,63 @@ class pacmanRenderer
 
 
 		this.gameCanvas.stage.addChild(this.playerSprite);
+
+		var boundAnimate = animate.bind(this);
+		var repeats = 0;
+		boundAnimate();
+
+		function animate()
+		{
+			for (var i = 0; i < this.gameCanvas.stage.children.length; i++)
+				{
+					if(this.gameCanvas.stage.children[i].notDestroy == undefined)this.gameCanvas.stage.children[i].alpha = repeats/10;
+				}
+			repeats++;
+			if (repeats < 11)
+			{
+				setTimeout(boundAnimate, 10);
+			}
+		}
 	}
 
 	destroyLevel()
 	{
-		var i =0;
-		while (this.gameCanvas.stage.children.length>i)
+		var repeats = 10;
+		var boundAnimate = animate.bind(this);
+		var boundDestroy = destroy.bind(this);
+
+		boundAnimate();
+
+		function animate()
 		{
-			if (this.gameCanvas.stage.children[i].notDestroy == true)
+			for (var i = 0; i < this.gameCanvas.stage.children.length; i++)
+				{
+					if(this.gameCanvas.stage.children[i].notDestroy == undefined)this.gameCanvas.stage.children[i].alpha = repeats/10;
+				}
+			repeats--;
+			if (repeats > 0)
 			{
-				i++;
+				setTimeout(boundAnimate, 10);
 			}
 			else
 			{
-				this.gameCanvas.stage.children[i].destroy();
+				boundDestroy();
+			}
+		}
+		
+		function destroy()
+		{
+			var i = 0;
+			while (this.gameCanvas.stage.children.length>i)
+			{
+				if (this.gameCanvas.stage.children[i].notDestroy == true)
+				{
+					i++;
+				}
+				else
+				{
+					this.gameCanvas.stage.children[i].destroy();
+				}
 			}
 		}
 	}
