@@ -54,6 +54,8 @@ class pacman
 			"spriteSheetHight" : 160,
 			"spriteSheetWidthSprites" : 14,
 			"spriteSheetHightSprites" : 10,
+			"spriteSheetBorderLeft" : 2,
+			"spriteSheetBorderTop" : 0,
 			"width" : 400,
 			"hight" : 400,
 			"scoreContainerHight" : 50,
@@ -195,7 +197,7 @@ class pacman
 		{	
 			if(check(curthis.currentPlayerY+dy,curthis.currentPlayerX+dx,curthis.currentLevel))
 			{
-				curthis.score = curthis.score + checkFood(curthis.currentPlayerY + dy ,curthis.currentPlayerX + dx,curthis.currentLevel);
+				curthis.score = curthis.score + checkFood(curthis.currentPlayerY + dy ,curthis.currentPlayerX + dx,curthis.currentLevel,curthis.renderer);
 				curthis.currentPlayerX = curthis.currentPlayerX + dx;
 				curthis.currentPlayerY = curthis.currentPlayerY + dy;
 				if(curthis.currentPlayerX < 0){curthis.currentPlayerX = curthis.currentLevel[0].length - 1}
@@ -222,9 +224,14 @@ class pacman
 			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
 		}
 
-		function checkFood(dx,dy,level)
+		function checkFood(dx,dy,level,renderer)
 		{
-			if (level[dx][dy]==2) {level[dx][dy] = 0; return 1;}
+			if (level[dx][dy]==2) 
+			{
+				level[dx][dy] = 0;
+				renderer.destroySprite(dx,dy);
+				return 1;
+				}
 				else return 0;
 		}
 		

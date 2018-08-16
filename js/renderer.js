@@ -7,8 +7,13 @@ class pacmanRenderer
 		this.spriteSheetHight = params.spriteSheetHight;
 		this.spriteSheetWidthSprites = params.spriteSheetWidthSprites;
 		this.spriteSheetHightSprites = params.spriteSheetHightSprites;
-		this.spriteHight = Math.round(this.spriteSheetHight/this.spriteSheetHightSprites);
-		this.spriteWidth = Math.round(this.spriteSheetWidth/this.spriteSheetWidthSprites);
+		
+		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
+		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
+
+		this.spriteHight = (this.spriteSheetHight - this.spriteSheetBorderTop)/this.spriteSheetHightSprites;
+		this.spriteWidth = (this.spriteSheetWidth - this.spriteSheetBorderLeft)/this.spriteSheetWidthSprites;
+
 		this.gameWidth = params.width;
 		this.gameHight = params.hight;
 		this.playerSpritesLocations = params.playerSpritesLocations;
@@ -76,14 +81,14 @@ class pacmanRenderer
 		var texture = PIXI.Texture.fromImage(this.pathToSpriteSheet);
 		var spriteSheet = new PIXI.Sprite(texture);
 		this.spriteCanvas.stage.addChild(spriteSheet);
-	//	this.container.appendChild(this.spriteCanvas.view);
+		//this.container.appendChild(this.spriteCanvas.view);
 
 		for (var i=0; i<this.playerSpritesLocations.length; i++)
 		{
 			var playerTexture =
 		   		new PIXI.Texture(
           		texture,
-          		new PIXI.Rectangle(this.spriteWidth*this.playerSpritesLocations[i].y, this.spriteHight*this.playerSpritesLocations[i].x, this.spriteWidth, this.spriteHight)
+          		new PIXI.Rectangle(this.spriteWidth * this.playerSpritesLocations[i].y + this.spriteSheetBorderLeft, this.spriteHight * this.playerSpritesLocations[i].x + this.spriteSheetBorderTop, this.spriteWidth, this.spriteHight)
         		);
         	this.playerTextures.push(playerTexture);
 		}
@@ -343,9 +348,6 @@ class pacmanRenderer
 						this.playerSprite.pivot.y = this.blockHight / 2;
 						this.playerLastX = this.playerSprite.x;
 						this.playerLastY = this.playerSprite.y;
-						//this.gameCanvas.stage.addChild(this.playerSprite);
-
-						console.log(this.playerSprite);
 					}
 				}
 			}
@@ -373,10 +375,6 @@ class pacmanRenderer
 				blockWidth, (y + 0.5) * this.blockHight, this.playerSprite);
 			this.playerLastX = (x + 0.5) * this.blockWidth;
 			this.playerLastY = (y + 0.5) * this.blockHight;
-			if(this.spriteArray[y][x]!=undefined)
-			{
-				this.spriteArray[y][x].destroy();	
-			}
 		}
 
 		switch (direction)
@@ -390,6 +388,12 @@ class pacmanRenderer
 		this.currentPlayerSprite++;
 		if (this.currentPlayerSprite==this.playerTextures.length) this.currentPlayerSprite = 0;
 		this.playerSprite.setTexture(this.playerTextures[this.currentPlayerSprite] );
+	}
+
+	destroySprite(x,y)
+	{
+		
+		this.spriteArray[x][y].destroy();	
 	}
 
 	animatePlayer(oldx,oldy,newx,newy,sprite)
