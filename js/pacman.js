@@ -107,7 +107,13 @@ class pacman
 			{
 				if (this.currentLevel[i][j] == 6)
 				{
-					this.player = new character (true, j, i);
+					this.player = new character ({
+							"isPlayer" : true,
+							"x" : j,
+							"y" : i,
+							"renderer" : this.renderer,
+							"eatsDots" : true
+						});
 					this.currentPlayerX = j; 
 					this.currentPlayerY = i;
 				}
@@ -171,40 +177,11 @@ class pacman
 
 		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
 			{
-				move(this.newdx,this.newdy,this.newDirection,this);
+				this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel);
 				this.moveTimer = -40;
 			}
 
 		this.moveTimer = this.moveTimer + 40;
-					
-
-		function move (dx,dy,direction,curthis)
-		{	
-			if (check(curthis.currentPlayerY+dy,curthis.currentPlayerX+dx,curthis.currentLevel)) {
-				curthis.dx = dx;
-				curthis.dy = dy;
-				curthis.direction = direction
-			}
-			if(check(curthis.currentPlayerY+curthis.dy,curthis.currentPlayerX+curthis.dx,curthis.currentLevel))
-			{
-				curthis.score = curthis.score + checkFood(curthis.currentPlayerY + curthis.dy ,curthis.currentPlayerX + curthis.dx,curthis.currentLevel,curthis.renderer);
-				curthis.currentPlayerX = curthis.currentPlayerX + curthis.dx;
-				curthis.currentPlayerY = curthis.currentPlayerY + curthis.dy;
-				if(curthis.currentPlayerX < 0){curthis.currentPlayerX = curthis.currentLevel[0].length - 1}
-				else
-				if(curthis.currentPlayerX > curthis.currentLevel[0].length-1){curthis.currentPlayerX = 0}
-
-				if(curthis.currentPlayerY < 0){curthis.currentPlayerY = curthis.currentLevel.length-1}	
-				else
-				if(curthis.currentPlayerY > curthis.currentLevel.length){curthis.currentPlayerY = 0}	
-
-				curthis.renderer.renderMovement(curthis.currentPlayerX,curthis.currentPlayerY,direction);
-			}
-			else
-			{
-				curthis.renderer.stop();
-			}	
-		}
 
 		if (oldscore!=this.score)
 		{
@@ -229,6 +206,14 @@ class pacman
 			else return 0;
 		}	
 	}
+/*
+███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
+██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+█████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
+██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ███████║
+╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+*/
 
 	generateLevelClearEvent()
 	{
@@ -276,6 +261,10 @@ class character
 		this.x = params.x;
 		this.y = params.y;
 		this.renderer = params.renderer;
+		this.eatsDots = params.eatsDots;
+		this.direction = -1;
+		this.dx = 0;
+		this.dy = 0;
 	}
 
 	move (dx,dy,direction,level)
@@ -296,11 +285,13 @@ class character
 			else return 0;
 		}
 
-		if (check(this.y+dy,this.x+dx,level)) {
+		if (check(this.y+dy,this.x+dx,level)) 
+		{
 			this.dx = dx;
 			this.dy = dy;
 			this.direction = direction
 		}
+
 		if(check(this.y+this.dy,this.x+this.dx,level))
 		{
 			this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer);
@@ -315,21 +306,34 @@ class character
 			if(this.y > level.length){this.y = 0}	
 
 			this.renderer.renderMovement(this.x,this.y,direction);
-			return true;
 		}
 		else
 		{
-			return false;
+			this.renderer.stop();
 		}	
 	}
 }
+
+/*
+███████╗███╗   ██╗        ██████╗██╗      █████╗ ███████╗███████╗
+██╔════╝████╗  ██║       ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
+█████╗  ██╔██╗ ██║       ██║     ██║     ███████║███████╗███████╗
+██╔══╝  ██║╚██╗██║       ██║     ██║     ██╔══██║╚════██║╚════██║
+███████╗██║ ╚████║██╗    ╚██████╗███████╗██║  ██║███████║███████║
+╚══════╝╚═╝  ╚═══╝╚═╝     ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+*/
 
 class enemy
 {
 	constructor(params)
 	{
-		this.character = new character(false, params.x, params.y);
-		this.eatsDots = params.eatsDots;
+		this.character = new character ({
+							"isPlayer" : false,
+							"x" : params.x,
+							"y" : params.y,
+							"renderer" : params.renderer,
+							"eatsDots" : params.eatsDots
+						});
 		this.speed = params.speed;
 		this.killsPlayer = params.killsPlayer;
 	}
