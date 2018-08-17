@@ -18,66 +18,53 @@ class pacmanRenderer
 		this.gameWidth = params.width;
 		this.gameHight = params.hight;
 		this.playerSpritesLocations = params.playerSpritesLocations;
-
-		this.scoreContainerHight = params.scoreContainerHight;
 		this.container = document.getElementById(params.container);
 
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
-		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight+this.scoreContainerHight});
+		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight});
+		this.gameCanvas.view.setAttribute("style","position:absolute; top:30px");
 		this.container.appendChild(this.gameCanvas.view);
 
 		this.playerTextures=[];
 		this.currentPlayerSprite = 0;
-		this.firstDraw = true;
 
-		this.boundUpdateScore = this.updateScore.bind(this);
 		this.boundRenderMovement = this.renderMovement.bind(this)
 		this.boundDestroyLevel = this.destroyLevel.bind(this);
 
-		//счет
-		this.scoreText=new PIXI.Text('Score:',
-			{
-				fontFamily : 'Courier New', 
-				fontSize: Math.floor(this.gameWidth/15), 
-				fill : 0xFFFFFF, 
-				align : 'right',
-				"dropShadow": true,
-				"dropShadowDistance": 10,
-				"dropShadowAlpha": 0.2,
-			});
-		this.scoreText.x=this.gameWidth/2;
-		this.scoreText.y=Math.floor(this.gameHight+this.scoreContainerHight/3);
-		this.scoreText.notDestroy = true;
+		this.interactiveSprites = [];
 
-		this.scoreNumberText=new PIXI.Text('0',
-			{
-				fontFamily : 'Courier New', 
-				fontSize: Math.floor(this.gameWidth/15), 
-				fill : 0xFFFFFF, 
-				align : 'right',
-				"dropShadow": true,
-				"dropShadowDistance": 10,
-				"dropShadowAlpha": 0.2,
-			});
-		this.scoreNumberText.x = this.gameWidth/2 + this.scoreText.width;
-		this.scoreNumberText.y = Math.floor(this.gameHight+this.scoreContainerHight/3);
-		this.scoreNumberText.notDestroy = true;
+		//создание полупрозрачного экрана для паузы
+		var pauseTexture = 	new PIXI.Texture(
+          	PIXI.Texture.fromCanvas(this.gameCanvas.view, PIXI.SCALE_MODES.LINEAR),
+          	new PIXI.Rectangle(0, 0, 1, 1)
+        	);
+		this.pauseBox = new PIXI.Sprite(pauseTexture);
+		this.pauseBox.x = 0;
+		this.pauseBox.y = 0;
+		this.pauseBox.width = this.gameWidth;
+		this.pauseBox.height = this.gameHight;
+		this.pauseBox.notDestroy = true;
+		this.pauseText = textGen("GAME PAUSED", this.gameWidth/10,this.gameWidth/10,this.gameHight/2-this.gameWidth/10,true);
+		this.pauseText.pauseBox = true;
 
-		//жизни
-		this.lifeText=new PIXI.Text('Lives:',
+		//функция генерации текстов
+		function textGen(text, fontSize, x, y, notDestroy)
+		{
+			var text = new PIXI.Text(text,
 			{
 				fontFamily : 'Courier New', 
-				fontSize: Math.floor(this.gameWidth/15), 
+				fontSize: fontSize, 
 				fill : 0xFFFFFF, 
 				align : 'right',
 				"dropShadow": true,
 				"dropShadowDistance": 10,
 				"dropShadowAlpha": 0.2,
 			});
-		this.lifeText.x = 10;
-		this.lifeText.y = Math.floor(this.gameHight+this.scoreContainerHight/3);
-		this.lifeDisplay = [];
-		this.lifeText.notDestroy = true;
+			text.x = x;
+			text.y = y;
+			text.notDestroy = notDestroy;
+			return text;
+		}
 
 		this.createWallSheet();
 		this.loadSpriteSheet();
@@ -86,6 +73,7 @@ class pacmanRenderer
 		//setTimeout(boundDraw,200);
 
 		this.spriteArray = [];
+		document.addEventListener("Pacman: game paused", this.pause.bind(this));
 	}
 
 /*
@@ -114,15 +102,6 @@ class pacmanRenderer
         		);
         	this.playerTextures.push(playerTexture);
 		}
-		//добавление спрайтов для отображения жизней
-		for (var i=0; i<this.lifemax; i++)
-		{
-			var life = new PIXI.Sprite(this.playerTextures[0]);
-			life.x = this.lifeText.width+(i*life.width);
-			life.y = this.lifeText.y+life.height/2;
-			life.notDestroy = true;
-			this.lifeDisplay.push(life);
-		}
 	}
 
 /*
@@ -142,35 +121,25 @@ class pacmanRenderer
 		//this.wallsheetDiv.appendChild(this.wallSheet.view);
 
 		//отрисовка канваса стен
-		let roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(2, 0x99CCFF, 1);
-		roundBox.drawRoundedRect(10, 10, 70, 70, 7)
-		this.wallSheet.stage.addChild(roundBox);
+		var rectangles = ['10,10,70,70,7','16,16,58,58,7','112,16,32,64,15','176,16,64,32,16','176,74,64,6,4','265,16,6,64,4'];
+	
+		addRectangles(rectangles, this.wallSheet.stage);
+		function addRectangles(rectangles,stage)
+		{
+			for (var i=0; i<rectangles.length; i++)
+			{
+				var current = rectangles[i].split(',');
+				addRoundBox(Number(current[0]), Number(current[1]), Number(current[2]), Number(current[3]), Number(current[4]),stage);
+			}
+		}
 
-		roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(2, 0x99CCFF, 1);
-		roundBox.drawRoundedRect(16, 16, 58, 58, 7)
-		this.wallSheet.stage.addChild(roundBox);
-
-		roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(3, 0x99CCFF, 1);
-		roundBox.drawRoundedRect(112, 16, 32, 64, 15)
-		this.wallSheet.stage.addChild(roundBox);
-
-		roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(3, 0x99CCFF, 1);
-		roundBox.drawRoundedRect(176, 16, 64, 32, 15)
-		this.wallSheet.stage.addChild(roundBox);
-
-		roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(3, 0x99CCFF, 1);
-		roundBox.drawRoundedRect(176, 74, 64, 6, 4)
-		this.wallSheet.stage.addChild(roundBox);
-
-		roundBox = new PIXI.Graphics();
-		roundBox.lineStyle(3, 0x99CCFF, 1);
-		roundBox.drawRoundedRect(32*8+11, 16, 6, 64, 4)
-		this.wallSheet.stage.addChild(roundBox);
+		function addRoundBox(x,y,width,hight,radius,stage)
+		{
+			let roundBox = new PIXI.Graphics();
+			roundBox.lineStyle(2, 0x99CCFF, 1);
+			roundBox.drawRoundedRect(x, y, width, hight, radius)
+			stage.addChild(roundBox);
+		}
 
 		//отрисовка ворот призраков
 		var line = new PIXI.Graphics();
@@ -198,27 +167,6 @@ class pacmanRenderer
 		circle.endFill();
 		this.wallSheet.stage.addChild(circle);
 		//this.wallSheet.view.style.visibility = "Hidden";
-
-		//сетка. сменить на true для отрисовки сетки
-		if (false)
-		{
-			for (var i=0; i < 11; i++)
-			{
-				var line = new PIXI.Graphics();
-				line.lineStyle(1, 0xFFFFFF, 1);
-				line.moveTo(i*32,0);
-				line.lineTo(i*32,96);
-				this.wallSheet.stage.addChild(line);
-			}
-			for (var i=0; i < 3; i++)
-			{
-				var line = new PIXI.Graphics();
-				line.lineStyle(1, 0xFFFFFF, 1);
-				line.moveTo(0,i*32);
-				line.lineTo(352,i*32);
-				this.wallSheet.stage.addChild(line);
-			}
-		}
 /*
 ████████╗███████╗██╗  ██╗████████╗██╗   ██╗██████╗ ███████╗███████╗
 ╚══██╔══╝██╔════╝╚██╗██╔╝╚══██╔══╝██║   ██║██╔══██╗██╔════╝██╔════╝
@@ -230,7 +178,7 @@ class pacmanRenderer
 
 		this.wallTextures=[];
 		this.wallTexture = PIXI.Texture.fromCanvas(this.wallSheet.view, PIXI.SCALE_MODES.LINEAR);
-		var cells = ['2,8,2','64,8,0','8,7,2','16,5,2','66,0,1','74,0,1','82,0,1','24,1,0','26,1,0','88,1,0','80,0,0','72,2,0','18,0,2','10,2,2']
+		var cells = ['2,8,2','64,8,0','8,7,2','16,5,2','66,0,1','74,0,1','82,0,1','24,1,0','26,1,0','88,1,0','80,0,0','72,2,0','18,0,2','10,2,2'];
 
 		fillCells(this.wallTextures, cells, this.wallTexture);
 
@@ -271,6 +219,7 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
+		this.interactiveSprites = [];
 		this.levelNumber = levelNo;
 		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.levelNumber]));
 		var level = this.currentLevel;
@@ -284,20 +233,22 @@ class pacmanRenderer
 		for (var i=0; i<level.length;i++)
 		{
 			this.spriteArray[i]=[];
-			for (var j=0; j<level[0].length;j++)
+			for (var j = 0; j < level[0].length; j++)
 			{
-				if (level[i][j]==1)
+				var item = level[i][j];
+				if (item==1)
 				{
 					sum=0;
-					if (check(level,i-1,j)) sum=sum+this.bitMask[0][1];
-					if (check(level,i+1,j)) sum=sum+this.bitMask[2][1];
-					if (check(level,i,j-1)) sum=sum+this.bitMask[1][0];
-					if (check(level,i,j+1)) sum=sum+this.bitMask[1][2];
+					if (check(level,i-1,j)) sum = sum + this.bitMask[0][1];
+					if (check(level,i+1,j)) sum = sum + this.bitMask[2][1];
+					if (check(level,i,j-1)) sum = sum + this.bitMask[1][0];
+					if (check(level,i,j+1)) sum = sum + this.bitMask[1][2];
 
 					function check(level,x,y)
 					{
+						var item = level[x][y];
 						var result = false;
-						if ((level[x][y]==1)||(level[x][y]==undefined)||(level[x][y]==4)||(level[x][y]==5)||(level[x][y]==-1)) result=true;	
+						if ((item==1)||(item==undefined)||(item==4)||(item==5)||(item==-1)) result=true;	
 						return result;
 					}
 					
@@ -326,46 +277,48 @@ class pacmanRenderer
 				else
 				{
 
-					if((level[i][j]>1)&&(level[i][j]<6))
+					if((item>1)&&(item<7))
 					{
-						var sprite = new PIXI.Sprite(this.otherTextures[level[i][j]]);
-						sprite.x = j*this.blockWidth;
-						sprite.y = i*this.blockHight;
+						if (item==6)
+						{
+							var sprite = new PIXI.extras.AnimatedSprite(this.playerTextures);
+							sprite.pivot.x = this.blockWidth / 2;
+							sprite.pivot.y = this.blockHight / 2;
+							sprite.x = (j+0.5)*this.blockWidth;
+							sprite.y = (i+0.5)*this.blockHight;
+							sprite.animationSpeed = 0.5;
+							this.interactiveSprites.push(sprite);
+						}
+						else
+						{
+							var sprite = new PIXI.Sprite(this.otherTextures[item]);
+							sprite.x = j*this.blockWidth;
+							sprite.y = i*this.blockHight;
+							this.gameCanvas.stage.addChild(sprite);	
+						}
+						
 						sprite.width = this.blockWidth;
 						sprite.height = this.blockHight;
 						sprite.alpha = 0;
-						this.gameCanvas.stage.addChild(sprite);
-						if ((level[i][j]==2)||(level[i][j]==3))
+						if ((item==2)||(item==3)||(item==6))
 							{
 								this.spriteArray[i][j] = sprite;	
 							}	
-					}
-
-					if(level[i][j]==6)
-					{
-						this.playerSprite = new PIXI.extras.AnimatedSprite(this.playerTextures);
-						this.playerSprite.x = (j+0.5)*this.blockWidth;
-						this.playerSprite.y = (i+0.5)*this.blockHight;
-						this.playerSprite.width = this.blockWidth;
-						this.playerSprite.height = this.blockHight;
-						this.playerSprite.pivot.x = this.blockWidth / 2;
-						this.playerSprite.pivot.y = this.blockHight / 2;
-						this.playerSprite.alpha = 0;
-						this.spriteArray[i][j] = this.playerSprite;
 					}
 				}
 			}
 		}
 
-		this.gameCanvas.stage.addChild(this.lifeText);
-		this.gameCanvas.stage.addChild(this.scoreText);
-		this.gameCanvas.stage.addChild(this.scoreNumberText);
-		for (var i=0; i<this.lifemax; i++)
-			{
-				this.gameCanvas.stage.addChild(this.lifeDisplay[i]);
-			}
-
-		this.gameCanvas.stage.addChild(this.playerSprite);
+		for (var i=0; i<this.interactiveSprites.length;i++)
+		{
+			this.gameCanvas.stage.addChild(this.interactiveSprites[i]);	
+		}
+		//экран паузы
+		this.gameCanvas.stage.addChild(this.pauseBox);
+		this.gameCanvas.stage.addChild(this.pauseText);
+		this.pauseText.alpha = 0;
+		this.pauseBox.alpha = 0;
+		this.pauseBox.pauseBox = true;
 
 		var boundAnimate = animate.bind(this);
 		var repeats = 0;
@@ -375,7 +328,7 @@ class pacmanRenderer
 		{
 			for (var i = 0; i < this.gameCanvas.stage.children.length; i++)
 				{
-					if(this.gameCanvas.stage.children[i].notDestroy == undefined)this.gameCanvas.stage.children[i].alpha = repeats/10;
+					if((this.gameCanvas.stage.children[i].notDestroy == undefined)&&(this.gameCanvas.stage.children[i].pauseBox == undefined))this.gameCanvas.stage.children[i].alpha = repeats/10;
 				}
 			repeats++;
 			if (repeats < 11)
@@ -384,6 +337,16 @@ class pacmanRenderer
 			}
 		}
 	}
+
+/*
+██████╗ ███████╗███████╗████████╗██████╗  ██████╗ ██╗   ██╗
+██╔══██╗██╔════╝██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗╚██╗ ██╔╝
+██║  ██║█████╗  ███████╗   ██║   ██████╔╝██║   ██║ ╚████╔╝ 
+██║  ██║██╔══╝  ╚════██║   ██║   ██╔══██╗██║   ██║  ╚██╔╝  
+██████╔╝███████╗███████║   ██║   ██║  ██║╚██████╔╝   ██║   
+╚═════╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   
+
+*/	
 
 	destroyLevel()
 	{
@@ -454,17 +417,10 @@ class pacmanRenderer
 
 		switch (direction)
 		{
-			case 0: sprite.rotation = 3.14; break;
+			case 0: sprite.rotation = Math.PI; break;
 			case 1: sprite.rotation = -1.57; break;
 			case 2: sprite.rotation = 0; break;
 			case 3: sprite.rotation = 1.57; break;
-		}
-
-		if (sprite == this.playerSprite)
-		{
-			this.currentPlayerSprite++;
-			if (this.currentPlayerSprite == this.playerTextures.length) this.currentPlayerSprite = 0;
-			sprite.setTexture(this.playerTextures[this.currentPlayerSprite] );
 		}
 	}
 
@@ -479,78 +435,21 @@ class pacmanRenderer
 		var newx = oldx + dx;
 		var newy = oldy + dy;
 
-		//if (newx == -1) newx = level.length;
 		var speedX = (newx - oldx)/6;
 		var speedY = (newy - oldy)/6;
-
 		
 		var repeats=0;			
 		animate();
 		function animate()
 		{	
+			sprite.stop();
 			sprite.x = sprite.x + speedX;
 			sprite.y = sprite.y + speedY;
 			if (repeats!=5)
 			{
+				sprite.play();
 				repeats++;
 				setTimeout(animate,20);
-			}
-		}
-	}
-
-	stop()
-	{
-
-	}
-/*
-██╗     ██╗██╗   ██╗███████╗███████╗
-██║     ██║██║   ██║██╔════╝██╔════╝
-██║     ██║██║   ██║█████╗  ███████╗
-██║     ██║╚██╗ ██╔╝██╔══╝  ╚════██║
-███████╗██║ ╚████╔╝ ███████╗███████║
-╚══════╝╚═╝  ╚═══╝  ╚══════╝╚══════╝
-*/
-	//обновление количества жизней
-	setLives(lives)
-	{
-		for(var i = 0; i < this.lifeDisplay.length; i++)
-		{
-			if (i < lives)
-			{
-				this.lifeDisplay[i].visible = true;
-			}
-			else
-			{
-				this.lifeDisplay[i].visible = false;
-			}
-		}
-	}
-
-/*
-███████╗ ██████╗ ██████╗ ██████╗ ███████╗
-██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-███████╗██║     ██║   ██║██████╔╝█████╗  
-╚════██║██║     ██║   ██║██╔══██╗██╔══╝  
-███████║╚██████╗╚██████╔╝██║  ██║███████╗
-╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝                                      
-*/
-
-	//обновление количества очков
-	updateScore(score)
-	{
-		this.scoreNumberText.text=score;
-		var repeats = -5;
-		var boundAnimate = animate.bind(this);
-		setTimeout(boundAnimate,20);
-		function animate()
-		{
-			var delta = 1+((25-repeats*repeats)/200);
-			this.scoreNumberText.scale.x = delta;
-			this.scoreNumberText.scale.y = delta;
-			repeats++;
-			if (repeats!=6)
-			{
-				setTimeout(boundAnimate,20);
 			}
 		}
 	}
@@ -559,6 +458,20 @@ class pacmanRenderer
 	returnContainer()
 	{
 		return this.gameCanvas.view;
+	}
+
+	pause()
+	{
+		if (this.pauseBox.alpha == 0)
+		{
+			this.pauseBox.alpha = 0.3;
+			this.pauseText.alpha = 1;
+		}
+		else
+		{
+			this.pauseBox.alpha = 0;
+			this.pauseText.alpha = 0;
+		}
 	}
 
 }

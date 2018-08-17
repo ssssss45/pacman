@@ -7,6 +7,24 @@ class pacman
 		//DOM контейнер для генерации игры
 		this.container = document.getElementById(params.container);
 
+		//добавление элементов управления в контейнер
+		this.pauseButton = document.createElement("button");
+		this.pauseButton.innerHTML="Pause";
+		this.pauseButton.setAttribute("style","position:absolute");
+		this.pauseButton.setAttribute("onClick","pacmanGame.pausePressed()");
+		this.container.appendChild(this.pauseButton);
+
+		this.scoreContainer = document.createElement("div");
+		this.scoreContainer.innerHTML="Score: 0";
+		var scorePlace = params.hight + 30;
+		this.scoreContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px");		
+		this.container.appendChild(this.scoreContainer);
+
+		this.LifeContainer = document.createElement("div");
+		this.LifeContainer.innerHTML="Lives: "+params.startExtraLives;
+		this.LifeContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px; left:"+params.width/2+"px;");		
+		this.container.appendChild(this.LifeContainer);
+
 		this.renderer= new pacmanRenderer({
 			"pathToSpriteSheet" : params.pathToSpriteSheet,
 			"spriteSheetWidth" : params.spriteSheetWidth,
@@ -26,6 +44,8 @@ class pacman
 			"playerDeathSpritesLocations" : params.playerDeathSpritesLocations,
 			"container" : "pacman-container"
 		});
+
+		
 
 		this.canvas = this.renderer.returnContainer();
 
@@ -62,6 +82,8 @@ class pacman
 			this.deactivateListenerActions.bind(this));
 		this.currentLevelNumber = -1;
 		setTimeout(this.gameStart.bind(this),100);
+
+		document.addEventListener("Pacman: game paused", this.pauseHandler.bind(this));
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -103,7 +125,7 @@ class pacman
 */
 	gameStart()
 	{
-		this.renderer.setLives(this.extraLives);
+		//this.renderer.setLives(this.extraLives);
 		document.addEventListener("Pacman: level clear", this.nextLevel.bind(this));
 		this.nextLevel();
 	}
@@ -161,164 +183,71 @@ class pacman
 */
 	gameStep()
 	{
-		if(this.stateMachine.getstate() == 2)
+		var oldscore = this.player.score;
+
+		if (this.leftActive)
 		{
-			var oldscore = this.player.score;
-
-			if (this.leftActive)
-			{
-				this.newDirection = 0;
-				this.newdx = -1;
-				this.newdy = 0;
-			}
-			else
-			if (this.rightActive)
-			{
-				this.newDirection = 2;
-				this.newdx = 1;
-				this.newdy = 0;
-			}
-			else
-			if (this.upActive)
-			{
-				this.newDirection = 1;
-				this.newdx = 0;
-				this.newdy = -1;
-			}
-			else
-			if (this.downActive)
-			{
-				this.newDirection = 3;
-				this.newdx = 0;
-				this.newdy = 1;
-			}
-
-			if ((this.newDirection != -1)&&(this.moveTimer >= 120))
-				{
-					this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel);
-					this.moveTimer = -40;
-				}
-
-			this.moveTimer = this.moveTimer + 40;
-			if (oldscore != this.player.score)
-			{
-				this.score = this.player.score;
-				this.currentLevelFood--;
-				if (this.currentLevelFood == 0)
-					{
-						clearInterval(this.currentGameInterval);
-						setTimeout(this.renderer.boundDestroyLevel,120);
-						setTimeout(this.stateMachine.setLevelClearScreen,320);
-					}
-			}
+			this.newDirection = 0;
+			this.newdx = -1;
+			this.newdy = 0;
 		}
+		else
+		if (this.rightActive)
+		{
+			this.newDirection = 2;
+			this.newdx = 1;
+			this.newdy = 0;
+		}
+		else
+		if (this.upActive)
+		{
+			this.newDirection = 1;
+			this.newdx = 0;
+			this.newdy = -1;
+		}
+		else
+		if (this.downActive)
+		{
+			this.newDirection = 3;
+			this.newdx = 0;
+			this.newdy = 1;
+		}
+
+		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
+			{
+				this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel);
+				this.moveTimer = -40;
+			}
+
+		this.moveTimer = this.moveTimer + 40;
+		if (oldscore != this.player.score)
+		{
+			this.score = this.player.score;
+			this.scoreContainer.innerHTML="Score: "+this.score;
+			this.currentLevelFood--;
+			if (this.currentLevelFood == 0)
+			{
+				clearInterval(this.currentGameInterval);
+				setTimeout(this.renderer.boundDestroyLevel,120);
+				setTimeout(this.stateMachine.setLevelClearScreen,320);
+			}
+		}	
 	}
 
-	generateEnemy()
+	pausePressed()
 	{
-
+		this.stateMachine.setPause();
 	}
-}
 
-/*
- ██████╗██╗  ██╗ █████╗ ██████╗         ██████╗██╗      █████╗ ███████╗███████╗
-██╔════╝██║  ██║██╔══██╗██╔══██╗       ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
-██║     ███████║███████║██████╔╝       ██║     ██║     ███████║███████╗███████╗
-██║     ██╔══██║██╔══██║██╔══██╗       ██║     ██║     ██╔══██║╚════██║╚════██║
-╚██████╗██║  ██║██║  ██║██║  ██║██╗    ╚██████╗███████╗██║  ██║███████║███████║
- ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
-*/
-
-class character
-{
-	constructor(params)
+	pauseHandler()
 	{
-		this.isPlayer = params.isPlayer;
-		this.x = params.x;
-		this.y = params.y;
-		this.renderer = params.renderer;
-		this.eatsDots = params.eatsDots;
-		this.direction = -1;
-		this.dx = 0;
-		this.dy = 0;
-		this.score = params.score;
-	}
-
-	move (dx,dy,direction,level)
-	{	
-		function check(dx,dy,level)
+		if (this.stateMachine.getState() == 3)
 		{
-			if (level[dx]==undefined) return true;
-			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
-		}
-
-		function checkFood(dx,dy,level,renderer,score,isPlayer)
-		{
-			if (level[dx]==undefined) return 0;
-			if (level[dx][dy]==2) 
-			{
-				level[dx][dy] = 0;
-				renderer.destroySprite(dx,dy);
-				if (isPlayer)
-				{
-					score++;
-					renderer.boundUpdateScore(score);
-				}
-				return 1;
-			}
-			else return 0;
-		}
-
-		if (check(this.y+dy,this.x+dx,level)) 
-		{
-			this.dx = dx;
-			this.dy = dy;
-			this.direction = direction
-		}
-
-		if((check(this.y+this.dy,this.x+this.dx,level))&&(this.direction!=-1))
-		{
-			if (this.eatsDots) this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.score,this.isPlayer);
-			this.renderer.boundRenderMovement(this.x,this.y,this.dx,this.dy,this.direction);
-			this.x = this.x + this.dx;
-			this.y = this.y + this.dy;
-			if(this.x < 0){this.x = level[0].length - 1}
-			else
-			if(this.x > level[0].length-1){this.x = 0}
-
-			if(this.y < 0){this.y = level.length-1}	
-			else
-			if(this.y > level.length -1){this.y = 0}			
+			clearInterval(this.currentGameInterval);	
 		}
 		else
 		{
-			this.renderer.stop();
-		}	
-	}
-}
-
-/*
-███████╗███╗   ██╗        ██████╗██╗      █████╗ ███████╗███████╗
-██╔════╝████╗  ██║       ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
-█████╗  ██╔██╗ ██║       ██║     ██║     ███████║███████╗███████╗
-██╔══╝  ██║╚██╗██║       ██║     ██║     ██╔══██║╚════██║╚════██║
-███████╗██║ ╚████║██╗    ╚██████╗███████╗██║  ██║███████║███████║
-╚══════╝╚═╝  ╚═══╝╚═╝     ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
-*/
-
-class enemy
-{
-	constructor(params)
-	{
-		this.character = new character ({
-							"isPlayer" : false,
-							"x" : params.x,
-							"y" : params.y,
-							"renderer" : params.renderer,
-							"eatsDots" : params.eatsDots
-						});
-		this.speed = params.speed;
-		this.killsPlayer = params.killsPlayer;
-		this.move = this.character.move;
+			this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
+		}
 	}
 }

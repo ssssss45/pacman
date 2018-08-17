@@ -1,7 +1,9 @@
 class pacmanStateMachine
 {
+
 /*
 states:	
+0 - loading
 1 - idle, state before the game
 2 - playing, ingame
 3 - pause
@@ -10,6 +12,7 @@ states:
 6 - high score screen
 7 - level clear screen
 */
+
 	constructor()
 	{
 		this.state = 1;
@@ -29,13 +32,19 @@ states:
 	{
 		if (this.state == 2)
 		{
+			console.log("paused");
 			this.state = 3;
+			var event = new CustomEvent("Pacman: game paused");
+			document.dispatchEvent(event);
 		}
 		else
 		{
 			if (this.state == 3)
 			{
+				console.log("unpaused");
 				this.state = 2;
+				var event = new CustomEvent("Pacman: game paused");
+				document.dispatchEvent(event);
 			}	
 		}
 	}
@@ -60,7 +69,7 @@ states:
 		document.dispatchEvent(event);
 	}
 
-	setstate(state)
+	setState(state)
 	{
 		if ((state==1)||(state=="idle"))
 		{
@@ -98,7 +107,7 @@ states:
 		}
 	}
 
-	getstate()
+	getState()
 	{
 		return this.state;
 	}
