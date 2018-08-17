@@ -141,15 +141,13 @@ class pacman
 		setTimeout(start.bind(this),40)
 		function start()
 		{
-			this.renderer.boundDestroyLevel();
+			this.renderer.boundDestroyLevel(true);
 			this.score = 0;
 			this.scoreContainer.innerHTML="Score: 0";
 			this.extraLives = this.startExtraLives;
 			this.lifeContainer.innerHTML="Lives: "+this.extraLives;
-
-			
+	
 			this.currentLevelNumber = -1;
-			console.log("AAA");
 			this.nextLevel();
 		}
 	}

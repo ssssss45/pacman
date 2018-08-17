@@ -26,7 +26,9 @@ class pacmanRenderer
 		this.container.appendChild(this.gameCanvas.view);
 
 		this.playerTextures=[];
-		this.currentPlayerSprite = 0;
+
+		this.createWallSheet();
+		this.loadSpriteSheet();
 
 		this.boundRenderMovement = this.renderMovement.bind(this)
 		this.boundDestroyLevel = this.destroyLevel.bind(this);
@@ -44,8 +46,21 @@ class pacmanRenderer
 		this.pauseBox.width = this.gameWidth;
 		this.pauseBox.height = this.gameHight;
 		this.pauseBox.notDestroy = true;
-		this.pauseText = textGen("GAME PAUSED", this.gameWidth/10,this.gameWidth/10,this.gameHight/2-this.gameWidth/10,true);
+		this.pauseText = textGen("GAME PAUSED", this.gameWidth/10,this.gameWidth/5,this.gameHight/2-this.gameWidth/10,true);
 		this.pauseText.pauseBox = true;
+
+		//экран приветствия
+		this.welcomeText = textGen("PAC-MAN", this.gameWidth/10,this.gameWidth/4,this.gameHight/2-this.gameWidth/10,true);
+		this.welcomeText.pauseBox = true;
+		this.welcomePac = new PIXI.Graphics();
+
+		this.welcomePac.beginFill(0xFFFF00);
+		this.welcomePac.drawCircle(this.gameWidth/2,this.gameHight/3*2,this.gameHight/8);
+
+		this.gameCanvas.stage.addChild(this.welcomePac);
+		this.gameCanvas.stage.addChild(this.welcomeText);
+
+		this.poly = new PIXI.Graphics();
 
 		//функция генерации текстов
 		function textGen(text, fontSize, x, y, notDestroy)
@@ -66,8 +81,32 @@ class pacmanRenderer
 			return text;
 		}
 
-		this.createWallSheet();
-		this.loadSpriteSheet();
+		//анимация экрана приветствия
+		this.idleAnimationInterval = setInterval(animateIdle.bind(this), 10);
+		var counter = 50;
+		var open = false;
+		var polyLength = this.gameWidth/2+this.gameHight/8;
+		function animateIdle()
+		{
+			if (open)
+			{
+				counter = counter + 2;
+				if (counter==50) open = false;
+			}
+			else
+			{
+				counter = counter - 2;
+				if (counter==0) open = true;
+			}	
+
+			this.poly.destroy();
+			this.poly = new PIXI.Graphics();
+			this.poly.beginFill(0x000000);
+			this.poly.drawPolygon([this.gameWidth/2, this.gameHight/3*2, polyLength, this.gameHight/3*2+counter, polyLength, this.gameHight/3*2-counter]);
+			this.gameCanvas.stage.addChild(this.poly);
+		}
+
+
 		this.levels=params.levels;
 		this.boundDraw= this.draw.bind(this);
 		//setTimeout(boundDraw,200);
@@ -219,6 +258,8 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
+		clearInterval(this.idleAnimationInterval);
+		this.welcomeText.visible = false;
 		this.interactiveSprites = [];
 		this.levelNumber = levelNo;
 		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.levelNumber]));
@@ -354,9 +395,8 @@ class pacmanRenderer
 		var boundAnimate = animate.bind(this);
 		var boundDestroy = destroy.bind(this);
 
-		//if (toAnimate == undefined) boundDestroy();
-			//else  boundAnimate();
-			boundDestroy();
+		if (toAnimate == undefined) {boundAnimate(); }
+			else  {boundDestroy()};
 
 		function animate()
 		{
@@ -431,7 +471,14 @@ class pacmanRenderer
 	{
 		this.spriteArray[x][y].destroy();	
 	}
-
+/*
+ █████╗ ███╗   ██╗██╗███╗   ███╗    ██████╗██╗  ██╗ █████╗ ██████╗    
+██╔══██╗████╗  ██║██║████╗ ████║   ██╔════╝██║  ██║██╔══██╗██╔══██╗   
+███████║██╔██╗ ██║██║██╔████╔██║   ██║     ███████║███████║██████╔╝   
+██╔══██║██║╚██╗██║██║██║╚██╔╝██║   ██║     ██╔══██║██╔══██║██╔══██╗   
+██║  ██║██║ ╚████║██║██║ ╚═╝ ██║██╗╚██████╗██║  ██║██║  ██║██║  ██║██╗
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
+*/
 	animateChar(oldx,oldy,dx,dy,sprite)
 	{
 		var newx = oldx + dx;
@@ -461,7 +508,14 @@ class pacmanRenderer
 	{
 		return this.gameCanvas.view;
 	}
-
+/*
+██████╗  █████╗ ██╗   ██╗███████╗███████╗
+██╔══██╗██╔══██╗██║   ██║██╔════╝██╔════╝
+██████╔╝███████║██║   ██║███████╗█████╗  
+██╔═══╝ ██╔══██║██║   ██║╚════██║██╔══╝  
+██║     ██║  ██║╚██████╔╝███████║███████╗
+╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝
+*/
 	pause()
 	{
 		if (this.pauseBox.alpha == 0)
