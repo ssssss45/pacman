@@ -11,13 +11,14 @@ class pacmanRenderer
 		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
 		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
 
-		this.spriteHight = (this.spriteSheetHight - this.spriteSheetBorderTop - params.spriteSheetBorderBottom)/this.spriteSheetHightSprites;
-		this.spriteWidth = (this.spriteSheetWidth - this.spriteSheetBorderLeft - params.spriteSheetBorderRight)/this.spriteSheetWidthSprites;
+		this.spriteHight = Math.round((this.spriteSheetHight - this.spriteSheetBorderTop - params.spriteSheetBorderBottom)/this.spriteSheetHightSprites);
+		this.spriteWidth = Math.round((this.spriteSheetWidth - this.spriteSheetBorderLeft - params.spriteSheetBorderRight)/this.spriteSheetWidthSprites);
 
 		this.lifemax = params.lifeMax;
 		this.gameWidth = params.width;
 		this.gameHight = params.hight;
 		this.playerSpritesLocations = params.playerSpritesLocations;
+		this.playerDeathSpritesLocations = params.playerDeathSpritesLocations;
 		this.container = document.getElementById(params.container);
 
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
@@ -25,7 +26,8 @@ class pacmanRenderer
 		this.gameCanvas.view.setAttribute("style","position:absolute; top:30px");
 		this.container.appendChild(this.gameCanvas.view);
 
-		this.playerTextures=[];
+		this.playerTextures = [];
+		this.playerDeathTextures = [];
 
 		this.createWallSheet();
 		this.loadSpriteSheet();
@@ -48,6 +50,9 @@ class pacmanRenderer
 		this.pauseBox.notDestroy = true;
 		this.pauseText = textGen("GAME PAUSED", this.gameWidth/10,this.gameWidth/5,this.gameHight/2-this.gameWidth/10,true);
 		this.pauseText.pauseBox = true;
+
+		//надпись в случае конца игры
+		this.gameOverText = textGen("GAME OVER", this.gameWidth/10,0,this.gameHight/2-this.gameWidth/10,true);
 
 		//экран приветствия
 		this.welcomeText = textGen("PAC-MAN", this.gameWidth/10,this.gameWidth/4,this.gameHight/2-this.gameWidth/10,true);
@@ -113,6 +118,7 @@ class pacmanRenderer
 
 		this.spriteArray = [];
 		document.addEventListener("Pacman: game paused", this.pause.bind(this));
+		document.addEventListener("Pacman: game over", this.gameOver.bind(this));
 	}
 
 /*
@@ -129,17 +135,21 @@ class pacmanRenderer
 		this.spriteCanvas = new PIXI.Application({width: this.spriteSheetWidth, height: this.spriteSheetHight});
 		var texture = PIXI.Texture.fromImage(this.pathToSpriteSheet);
 		var spriteSheet = new PIXI.Sprite(texture);
-		this.spriteCanvas.stage.addChild(spriteSheet);
-		//this.container.appendChild(this.spriteCanvas.view);
 
-		for (var i=0; i<this.playerSpritesLocations.length; i++)
+		fillTextureArray(this.playerSpritesLocations, this.playerTextures, this);
+		fillTextureArray(this.playerDeathSpritesLocations, this.playerDeathTextures, this);
+
+		function fillTextureArray(list, array, currThis)
 		{
-			var playerTexture =
-		   		new PIXI.Texture(
-          		texture,
-          		new PIXI.Rectangle(this.spriteWidth * this.playerSpritesLocations[i].y + this.spriteSheetBorderLeft, this.spriteHight * this.playerSpritesLocations[i].x + this.spriteSheetBorderTop, this.spriteWidth, this.spriteHight)
-        		);
-        	this.playerTextures.push(playerTexture);
+			for (var i = 0; i < list.length; i++)
+			{
+				var playerTexture =
+			   		new PIXI.Texture(
+	          		texture,
+	          		new PIXI.Rectangle(currThis.spriteWidth * list[i].y + currThis.spriteSheetBorderLeft, currThis.spriteHight * list[i].x + currThis.spriteSheetBorderTop, currThis.spriteWidth, currThis.spriteHight)
+	        		);
+	        	array.push(playerTexture);
+			}
 		}
 	}
 
@@ -327,6 +337,8 @@ class pacmanRenderer
 							sprite.pivot.y = this.blockHight / 2;
 							sprite.x = (j+0.5)*this.blockWidth;
 							sprite.y = (i+0.5)*this.blockHight;
+							sprite.originX = (j+0.5)*this.blockWidth;
+							sprite.originY = (i+0.5)*this.blockHight;
 							sprite.animationSpeed = 0.5;
 							this.interactiveSprites.push(sprite);
 						}
@@ -342,9 +354,9 @@ class pacmanRenderer
 						sprite.height = this.blockHight;
 						sprite.alpha = 0;
 						if ((item==2)||(item==3)||(item==6))
-							{
-								this.spriteArray[i][j] = sprite;	
-							}	
+						{
+							this.spriteArray[i][j] = sprite;	
+						}	
 					}
 				}
 			}
@@ -360,6 +372,10 @@ class pacmanRenderer
 		this.pauseText.alpha = 0;
 		this.pauseBox.alpha = 0;
 		this.pauseBox.pauseBox = true;
+
+		//надпись конца игры
+		this.gameCanvas.stage.addChild(this.gameOverText);
+		this.gameOverText.alpha = 0;
 
 		var boundAnimate = animate.bind(this);
 		var repeats = 0;
@@ -386,7 +402,6 @@ class pacmanRenderer
 ██║  ██║██╔══╝  ╚════██║   ██║   ██╔══██╗██║   ██║  ╚██╔╝  
 ██████╔╝███████╗███████║   ██║   ██║  ██║╚██████╔╝   ██║   
 ╚═════╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   
-
 */	
 
 	destroyLevel(toAnimate)
@@ -438,7 +453,7 @@ class pacmanRenderer
 ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   
 ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
 ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
-                                                                          
+                                                                      
 */
 	renderMovement(x,y,dx,dy,direction)
 	{
@@ -530,4 +545,18 @@ class pacmanRenderer
 		}
 	}
 
+	animatePlayerDeath()
+	{
+		this.interactiveSprites[0].loop = false;
+		this.interactiveSprites[0].textures = this.playerDeathTextures;
+		this.interactiveSprites[0].animationSpeed = 0.2;
+		this.interactiveSprites[0].play();
+	}
+
+	gameOver(event)
+	{
+		this.gameOverText.text = "Game Over \n Your score: "+event.detail.score;
+		this.gameOverText.alpha = 1;
+		this.pauseBox.alpha = 0.3;	
+	}
 }

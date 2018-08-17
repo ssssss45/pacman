@@ -5,7 +5,7 @@ class pacmanStateMachine
 states:	
 0 - loading
 1 - idle, state before the game
-2 - playing, ingame
+2 - playing
 3 - pause
 4 - game over screen
 5 - high score entry
@@ -52,11 +52,16 @@ states:
 		}
 	}
 
-	setGameOver()
+	setGameOver(score)
 	{
-		this.state = 4;
-		var event = new CustomEvent("Pacman: game over");
-		document.dispatchEvent(event);
+		if (this.state == 2)
+		{
+			this.state = 4;
+			var event = new CustomEvent("Pacman: game over",{
+				detail: {score: score}
+			});
+			document.dispatchEvent(event);
+		}
 	}
 
 	setEnterHighScore()

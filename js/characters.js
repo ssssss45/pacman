@@ -93,5 +93,6 @@ class enemy
 		this.speed = params.speed;
 		this.killsPlayer = params.killsPlayer;
 		this.move = this.character.move;
+		this.delay = params.delay;
 	}
 }

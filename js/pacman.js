@@ -70,6 +70,7 @@ class pacman
 		addKeyToController("up",[38],this.keycon);
 		addKeyToController("down",[40],this.keycon);
 		addKeyToController("x",[88],this.keycon);
+		addKeyToController("d",[68],this.keycon);
 
 		function addKeyToController(name,keys,keycon)
 		{
@@ -125,6 +126,7 @@ class pacman
 			case "down": this.downActive = false; break;
 			case "up": this.upActive = false; break;
 			case "x": this.currentLevelFood = 1; break;
+			case "d": this.playerDeath(); break;
 		}
 	}
 /*
@@ -274,6 +276,23 @@ class pacman
 	startPressed()
 	{
 		this.stateMachine.setPlaying();
+	}
+
+	playerDeath()
+	{
+		clearInterval(this.currentGameInterval);
+		this.renderer.animatePlayerDeath(this.player);
+
+		this.extraLives--;
+
+		if (this.extraLives == -1)
+		{
+			this.stateMachine.setGameOver(this.score);
+		}
+		else
+		{
+			this.lifeContainer.innerHTML = "Lives: "+this.extraLives;
+		}
 	}
 
 }
