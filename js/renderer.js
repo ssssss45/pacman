@@ -348,13 +348,15 @@ class pacmanRenderer
 
 */	
 
-	destroyLevel()
+	destroyLevel(toAnimate)
 	{
 		var repeats = 10;
 		var boundAnimate = animate.bind(this);
 		var boundDestroy = destroy.bind(this);
 
-		boundAnimate();
+		//if (toAnimate == undefined) boundDestroy();
+			//else  boundAnimate();
+			boundDestroy();
 
 		function animate()
 		{

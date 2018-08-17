@@ -8,22 +8,29 @@ class pacman
 		this.container = document.getElementById(params.container);
 
 		//добавление элементов управления в контейнер
+		this.startButton = document.createElement("button");
+		this.startButton.innerHTML="Start";
+		this.startButton.setAttribute("style","position:absolute");
+		this.startButton.setAttribute("onClick","pacmanGame.startPressed()");
+		this.container.appendChild(this.startButton);
+
 		this.pauseButton = document.createElement("button");
+		var pausePlace = params.width-45;
 		this.pauseButton.innerHTML="Pause";
-		this.pauseButton.setAttribute("style","position:absolute");
+		this.pauseButton.setAttribute("style","position:absolute; left:"+pausePlace+"px");
 		this.pauseButton.setAttribute("onClick","pacmanGame.pausePressed()");
 		this.container.appendChild(this.pauseButton);
 
 		this.scoreContainer = document.createElement("div");
-		this.scoreContainer.innerHTML="Score: 0";
+		this.scoreContainer.innerHTML="";
 		var scorePlace = params.hight + 30;
 		this.scoreContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px");		
 		this.container.appendChild(this.scoreContainer);
 
-		this.LifeContainer = document.createElement("div");
-		this.LifeContainer.innerHTML="Lives: "+params.startExtraLives;
-		this.LifeContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px; left:"+params.width/2+"px;");		
-		this.container.appendChild(this.LifeContainer);
+		this.lifeContainer = document.createElement("div");
+		this.lifeContainer.innerHTML="";
+		this.lifeContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px; left:"+params.width/2+"px;");		
+		this.container.appendChild(this.lifeContainer);
 
 		this.renderer= new pacmanRenderer({
 			"pathToSpriteSheet" : params.pathToSpriteSheet,
@@ -49,7 +56,8 @@ class pacman
 
 		this.canvas = this.renderer.returnContainer();
 
-		this.extraLives = params.startExtraLives || 2;
+		this.startExtraLives = params.startExtraLives || 2;
+		this.extraLives = this.startExtraLives;
 
 		//стейт машина
 		this.stateMachine = new pacmanStateMachine();
@@ -62,6 +70,7 @@ class pacman
 		addKeyToController("up",[38],this.keycon);
 		addKeyToController("down",[40],this.keycon);
 		addKeyToController("x",[88],this.keycon);
+
 		function addKeyToController(name,keys,keycon)
 		{
 			var key={
@@ -71,6 +80,7 @@ class pacman
 			};
 			keycon.bindActions(key);
 		}
+
 		this.score = 0;
 		this.leftActive = false;
 		this.rightActive = false;
@@ -81,9 +91,11 @@ class pacman
 		this.canvas.addEventListener("controls:deactivate",
 			this.deactivateListenerActions.bind(this));
 		this.currentLevelNumber = -1;
-		setTimeout(this.gameStart.bind(this),100);
 
+		document.addEventListener("Pacman: level clear", this.nextLevel.bind(this));
 		document.addEventListener("Pacman: game paused", this.pauseHandler.bind(this));
+		document.addEventListener("Pacman: game start", this.gameStart.bind(this));
+		
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -125,9 +137,21 @@ class pacman
 */
 	gameStart()
 	{
-		//this.renderer.setLives(this.extraLives);
-		document.addEventListener("Pacman: level clear", this.nextLevel.bind(this));
-		this.nextLevel();
+		clearInterval(this.currentGameInterval);
+		setTimeout(start.bind(this),40)
+		function start()
+		{
+			this.renderer.boundDestroyLevel();
+			this.score = 0;
+			this.scoreContainer.innerHTML="Score: 0";
+			this.extraLives = this.startExtraLives;
+			this.lifeContainer.innerHTML="Lives: "+this.extraLives;
+
+			
+			this.currentLevelNumber = -1;
+			console.log("AAA");
+			this.nextLevel();
+		}
 	}
 
 	nextLevel()
@@ -169,8 +193,6 @@ class pacman
 		this.newdy = 0;
 		this.moveTimer = 0;
 		this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
-
-		this.stateMachine.setPlaying();
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
@@ -250,4 +272,10 @@ class pacman
 			this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
 		}
 	}
+
+	startPressed()
+	{
+		this.stateMachine.setPlaying();
+	}
+
 }

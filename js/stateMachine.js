@@ -25,14 +25,18 @@ states:
 
 	setPlaying()
 	{
-		this.state = 2;
+		if ((this.state == 1)||(this.state == 4)||(this.state == 2))
+		{
+			this.state = 2;
+			var event = new CustomEvent("Pacman: game start");
+			document.dispatchEvent(event);
+		}
 	}
 
 	setPause()
 	{
 		if (this.state == 2)
 		{
-			console.log("paused");
 			this.state = 3;
 			var event = new CustomEvent("Pacman: game paused");
 			document.dispatchEvent(event);
@@ -41,7 +45,6 @@ states:
 		{
 			if (this.state == 3)
 			{
-				console.log("unpaused");
 				this.state = 2;
 				var event = new CustomEvent("Pacman: game paused");
 				document.dispatchEvent(event);
