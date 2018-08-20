@@ -52,7 +52,8 @@ class pacmanRenderer
 		this.pauseText.pauseBox = true;
 
 		//надпись в случае конца игры
-		this.gameOverText = textGen("GAME OVER", this.gameWidth/10,0,this.gameHight/2-this.gameWidth/10,true);
+		this.gameOverText = textGen("", this.gameWidth/10,0,this.gameHight/2-this.gameWidth/10,true);
+		this.gameOverScore = textGen("", this.gameWidth/10,0,this.gameHight/2,true);
 
 		//экран приветствия
 		this.welcomeText = textGen("PAC-MAN", this.gameWidth/10,this.gameWidth/4,this.gameHight/2-this.gameWidth/10,true);
@@ -119,6 +120,8 @@ class pacmanRenderer
 		this.spriteArray = [];
 		document.addEventListener("Pacman: game paused", this.pause.bind(this));
 		document.addEventListener("Pacman: game over", this.gameOver.bind(this));
+		document.addEventListener("Pacman: player died", this.animatePlayerDeath.bind(this));
+		document.addEventListener("Pacman: resetting", this.resetAfterDeath.bind(this));
 	}
 
 /*
@@ -337,8 +340,8 @@ class pacmanRenderer
 							sprite.pivot.y = this.blockHight / 2;
 							sprite.x = (j+0.5)*this.blockWidth;
 							sprite.y = (i+0.5)*this.blockHight;
-							sprite.originX = (j+0.5)*this.blockWidth;
-							sprite.originY = (i+0.5)*this.blockHight;
+							sprite.originX = sprite.x;
+							sprite.originY = sprite.y;
 							sprite.animationSpeed = 0.5;
 							this.interactiveSprites.push(sprite);
 						}
@@ -376,6 +379,8 @@ class pacmanRenderer
 		//надпись конца игры
 		this.gameCanvas.stage.addChild(this.gameOverText);
 		this.gameOverText.alpha = 0;
+		this.gameCanvas.stage.addChild(this.gameOverScore);
+		this.gameOverScore.alpha = 0;
 
 		var boundAnimate = animate.bind(this);
 		var repeats = 0;
@@ -457,7 +462,8 @@ class pacmanRenderer
 */
 	renderMovement(x,y,dx,dy,direction)
 	{
-		var sprite = this.spriteArray[y][x];
+		//var sprite = this.spriteArray[y][x];
+		var sprite = this.interactiveSprites[0];
 		var level = this.currentLevel;
 		var visibilityMarker = true;
 
@@ -547,16 +553,47 @@ class pacmanRenderer
 
 	animatePlayerDeath()
 	{
-		this.interactiveSprites[0].loop = false;
-		this.interactiveSprites[0].textures = this.playerDeathTextures;
-		this.interactiveSprites[0].animationSpeed = 0.2;
-		this.interactiveSprites[0].play();
+		var player = this.interactiveSprites[0];
+		player.rotation = 0;
+		player.textures = [this.playerDeathTextures[0]];
+		var i = 0;
+		var length = this.playerDeathTextures.length;
+
+		var boundAnimate = animate.bind(this);
+		setTimeout(boundAnimate,500);
+		function animate()
+		{
+			if (i<length)	
+			{
+				player.textures = [this.playerDeathTextures[i]];
+				i++;
+				setTimeout(boundAnimate,80);
+			}
+			else
+			{
+				var event = new CustomEvent("Pacman: player death animation finished");
+				document.dispatchEvent(event);
+			}
+		}
+	}
+
+	resetAfterDeath()
+	{
+		var player = this.interactiveSprites[0];
+		player.stop();
+		player.textures = this.playerTextures;
+		player.x = player.originX;
+		player.y = player.originY;
+		var event = new CustomEvent("Pacman: resetting finished");
+		document.dispatchEvent(event);
 	}
 
 	gameOver(event)
 	{
-		this.gameOverText.text = "Game Over \n Your score: "+event.detail.score;
+		this.gameOverText.text = "Game Over";
 		this.gameOverText.alpha = 1;
+		this.gameOverScore.text = "Your score: "+event.detail.score;
+		this.gameOverScore.alpha = 1;
 		this.pauseBox.alpha = 0.3;	
 	}
 }

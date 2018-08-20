@@ -96,7 +96,9 @@ class pacman
 		document.addEventListener("Pacman: level clear", this.nextLevel.bind(this));
 		document.addEventListener("Pacman: game paused", this.pauseHandler.bind(this));
 		document.addEventListener("Pacman: game start", this.gameStart.bind(this));
-		
+		document.addEventListener("Pacman: player death animation finished", this.deathAnimationFinishedHandler.bind(this));
+		document.addEventListener("Pacman: resetting", this.reset.bind(this));
+		document.addEventListener("Pacman: resetting finished", this.handleFinishedResetting.bind(this));
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -176,6 +178,8 @@ class pacman
 							"isPlayer" : true,
 							"x" : j,
 							"y" : i,
+							"originX" : j,
+							"originY" : i,
 							"renderer" : this.renderer,
 							"eatsDots" : true,
 							"score" : this.score
@@ -291,8 +295,28 @@ class pacman
 		}
 		else
 		{
+			this.stateMachine.setPlayerDied();
 			this.lifeContainer.innerHTML = "Lives: "+this.extraLives;
 		}
 	}
 
+	deathAnimationFinishedHandler()
+	{
+		this.stateMachine.setResetting();
+	}
+
+	handleFinishedResetting()
+	{
+		this.stateMachine.setPlaying();
+		this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
+	}
+
+	reset()
+	{
+		this.player.x = this.player.originX;
+		this.player.y = this.player.originY;
+		this.newDirection = -1;
+		this.newdx = 0;
+		this.newdy = 0;
+	}
 }

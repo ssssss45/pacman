@@ -11,6 +11,9 @@ states:
 5 - high score entry
 6 - high score screen
 7 - level clear screen
+8 - player dead
+9 - resetting
+10 - ready screen
 */
 
 	constructor()
@@ -30,6 +33,10 @@ states:
 			this.state = 2;
 			var event = new CustomEvent("Pacman: game start");
 			document.dispatchEvent(event);
+		}
+		if (this.state == 9)
+		{
+			this.state = 2;
 		}
 	}
 
@@ -72,9 +79,33 @@ states:
 
 	setLevelClearScreen()
 	{
-		this.state = 7;
-		var event = new CustomEvent("Pacman: level clear");
-		document.dispatchEvent(event);
+		if (this.state == 2)
+		{
+			this.state = 7;
+			var event = new CustomEvent("Pacman: level clear");
+			document.dispatchEvent(event);
+		}
+	}
+
+	setPlayerDied()
+	{
+		if (this.state == 2)
+		{
+			this.state = 8;
+			var event = new CustomEvent("Pacman: player died");
+			document.dispatchEvent(event);
+		}
+	}
+
+	setResetting()
+	{
+		console.log(this.state);
+		if (this.state == 8)
+		{
+			this.state = 9;
+			var event = new CustomEvent("Pacman: resetting");
+			document.dispatchEvent(event);
+		}
 	}
 
 	setState(state)
@@ -109,7 +140,7 @@ states:
 			this.setLookHighScore();
 		}
 
-		if ((state==6)||(state=="levelClear"))
+		if ((state==7)||(state=="levelClear"))
 		{
 			this.setLevelClearScreen();
 		}

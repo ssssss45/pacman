@@ -19,6 +19,8 @@ class character
 		this.direction = -1;
 		this.dx = 0;
 		this.dy = 0;
+		this.originX = params.x;
+		this.originY = params.y;
 		this.score = params.score;
 	}
 
