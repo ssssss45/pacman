@@ -68,15 +68,18 @@ class pacmanRenderer
 
 		this.poly = new PIXI.Graphics();
 
+		//текст экрана готовности
+		this.readyScreenText = textGen("READY?", this.gameWidth/10,this.gameWidth/3,this.gameHight/2,true);
+
 		//функция генерации текстов
 		function textGen(text, fontSize, x, y, notDestroy)
 		{
 			var text = new PIXI.Text(text,
 			{
-				fontFamily : 'Courier New', 
-				fontSize: fontSize, 
-				fill : 0xFFFFFF, 
-				align : 'right',
+				"fontFamily" : 'Courier New', 
+				"fontSize": fontSize, 
+				"fill" : 0xFFFFFF, 
+				"align" : 'right',
 				"dropShadow": true,
 				"dropShadowDistance": 10,
 				"dropShadowAlpha": 0.2,
@@ -122,6 +125,8 @@ class pacmanRenderer
 		document.addEventListener("Pacman: game over", this.gameOver.bind(this));
 		document.addEventListener("Pacman: player died", this.animatePlayerDeath.bind(this));
 		document.addEventListener("Pacman: resetting", this.resetAfterDeath.bind(this));
+		document.addEventListener("Pacman: ready screen", this.readyScreen.bind(this));
+		document.addEventListener("Pacman: game start", this.removeReadyScreen.bind(this));
 	}
 
 /*
@@ -369,18 +374,18 @@ class pacmanRenderer
 		{
 			this.gameCanvas.stage.addChild(this.interactiveSprites[i]);	
 		}
-		//экран паузы
-		this.gameCanvas.stage.addChild(this.pauseBox);
-		this.gameCanvas.stage.addChild(this.pauseText);
-		this.pauseText.alpha = 0;
-		this.pauseBox.alpha = 0;
 		this.pauseBox.pauseBox = true;
 
-		//надпись конца игры
-		this.gameCanvas.stage.addChild(this.gameOverText);
-		this.gameOverText.alpha = 0;
-		this.gameCanvas.stage.addChild(this.gameOverScore);
-		this.gameOverScore.alpha = 0;
+		initObjects(this.pauseBox, 0.3, this);
+		initObjects(this.pauseText, 0, this);
+		initObjects(this.gameOverText, 0, this);
+		initObjects(this.gameOverScore, 0, this);
+		initObjects(this.readyScreenText, 1, this);
+		function initObjects(obj, alpha, currThis)
+		{
+			currThis.gameCanvas.stage.addChild(obj);
+			obj.alpha = alpha;
+		}
 
 		var boundAnimate = animate.bind(this);
 		var repeats = 0;
@@ -411,6 +416,11 @@ class pacmanRenderer
 
 	destroyLevel(toAnimate)
 	{
+		for (var i = 0; i < this.interactiveSprites.length; i++)
+		{
+			clearInterval(this.interactiveSprites[i].animInterval);
+		}
+
 		var repeats = 10;
 		var boundAnimate = animate.bind(this);
 		var boundDestroy = destroy.bind(this);
@@ -475,8 +485,6 @@ class pacmanRenderer
 		
 		sprite.visible = visibilityMarker;
 		this.animateChar(x, y, dx * this.blockWidth, dy * this.blockHight, sprite);
-		this.spriteArray[y+dy][x+dx] = this.spriteArray[y][x];
-		this.spriteArray[y][x] = undefined;
 
 		switch (direction)
 		{
@@ -508,18 +516,23 @@ class pacmanRenderer
 		var speedX = (newx - oldx)/6;
 		var speedY = (newy - oldy)/6;
 		
-		var repeats=0;			
+		sprite.repeats = 0;			
 		animate();
+		sprite.animInterval = setInterval(animate,20);
+
 		function animate()
 		{	
 			sprite.stop();
 			sprite.x = sprite.x + speedX;
 			sprite.y = sprite.y + speedY;
-			if (repeats!=5)
+			if (sprite.repeats != 5)
 			{
 				sprite.play();
-				repeats++;
-				setTimeout(animate,20);
+				sprite.repeats++;
+			}
+			else
+			{
+				clearInterval(sprite.animInterval);
 			}
 		}
 	}
@@ -595,5 +608,17 @@ class pacmanRenderer
 		this.gameOverScore.text = "Your score: "+event.detail.score;
 		this.gameOverScore.alpha = 1;
 		this.pauseBox.alpha = 0.3;	
+	}
+
+	readyScreen()
+	{
+		this.pauseBox.alpha = 0.5;
+		this.readyScreenText.alpha = 1;
+	}
+
+	removeReadyScreen()
+	{
+		this.readyScreenText.alpha = 0;
+		this.pauseBox.alpha = 0;	
 	}
 }

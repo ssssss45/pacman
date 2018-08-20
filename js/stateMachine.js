@@ -14,6 +14,7 @@ states:
 8 - player dead
 9 - resetting
 10 - ready screen
+11 - new game
 */
 
 	constructor()
@@ -28,15 +29,11 @@ states:
 
 	setPlaying()
 	{
-		if ((this.state == 1)||(this.state == 4)||(this.state == 2))
+		if ((this.state == 10))
 		{
 			this.state = 2;
 			var event = new CustomEvent("Pacman: game start");
 			document.dispatchEvent(event);
-		}
-		if (this.state == 9)
-		{
-			this.state = 2;
 		}
 	}
 
@@ -99,11 +96,44 @@ states:
 
 	setResetting()
 	{
-		console.log(this.state);
 		if (this.state == 8)
 		{
 			this.state = 9;
 			var event = new CustomEvent("Pacman: resetting");
+			document.dispatchEvent(event);
+		}
+	}
+
+	setReadyScreen()
+	{
+		if ((this.state == 11)||(this.state == 2)||(this.state == 4)||(this.state == 7))
+		{
+
+			this.state = 10;
+			var event = new CustomEvent("Pacman: ready screen");
+			document.dispatchEvent(event);
+		}
+		else
+		{
+			if(this.state == 9)
+			{
+				this.state = 10;
+				var event = new CustomEvent("Pacman: ready screen",{
+					detail: {
+						notANewGame :true
+					}
+				});
+				document.dispatchEvent(event);
+			}
+		}
+	}
+
+	setNewGame()
+	{
+		if ((this.state == 1) || (this.state == 10) || (this.state == 4)|| (this.state == 2))
+		{
+			this.state = 11;
+			var event = new CustomEvent("Pacman: new game");
 			document.dispatchEvent(event);
 		}
 	}

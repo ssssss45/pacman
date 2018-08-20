@@ -9,27 +9,27 @@ class pacman
 
 		//добавление элементов управления в контейнер
 		this.startButton = document.createElement("button");
-		this.startButton.innerHTML="Start";
+		this.startButton.innerHTML = "Start";
 		this.startButton.setAttribute("style","position:absolute");
 		this.startButton.setAttribute("onClick","pacmanGame.startPressed()");
 		this.container.appendChild(this.startButton);
 
 		this.pauseButton = document.createElement("button");
-		var pausePlace = params.width-45;
+		var pausePlace = params.width - 45;
 		this.pauseButton.innerHTML="Pause";
-		this.pauseButton.setAttribute("style","position:absolute; left:"+pausePlace+"px");
+		this.pauseButton.setAttribute("style","position:absolute; left:" + pausePlace + "px");
 		this.pauseButton.setAttribute("onClick","pacmanGame.pausePressed()");
 		this.container.appendChild(this.pauseButton);
 
 		this.scoreContainer = document.createElement("div");
-		this.scoreContainer.innerHTML="";
+		this.scoreContainer.innerHTML = "";
 		var scorePlace = params.hight + 30;
-		this.scoreContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px");		
+		this.scoreContainer.setAttribute("style","position:absolute; top:" + scorePlace + "px");		
 		this.container.appendChild(this.scoreContainer);
 
 		this.lifeContainer = document.createElement("div");
-		this.lifeContainer.innerHTML="";
-		this.lifeContainer.setAttribute("style","position:absolute; top:"+scorePlace+"px; left:"+params.width/2+"px;");		
+		this.lifeContainer.innerHTML = "";
+		this.lifeContainer.setAttribute("style","position:absolute; top:" + scorePlace + "px; left:" + params.width/2 + "px;");		
 		this.container.appendChild(this.lifeContainer);
 
 		this.renderer= new pacmanRenderer({
@@ -51,8 +51,6 @@ class pacman
 			"playerDeathSpritesLocations" : params.playerDeathSpritesLocations,
 			"container" : "pacman-container"
 		});
-
-		
 
 		this.canvas = this.renderer.returnContainer();
 
@@ -93,12 +91,14 @@ class pacman
 			this.deactivateListenerActions.bind(this));
 		this.currentLevelNumber = -1;
 
-		document.addEventListener("Pacman: level clear", this.nextLevel.bind(this));
+		document.addEventListener("Pacman: game start", this.startPlaying.bind(this));
+		document.addEventListener("Pacman: ready screen", this.readyScreen.bind(this));
 		document.addEventListener("Pacman: game paused", this.pauseHandler.bind(this));
-		document.addEventListener("Pacman: game start", this.gameStart.bind(this));
+		document.addEventListener("Pacman: new game", this.gameStart.bind(this));
 		document.addEventListener("Pacman: player death animation finished", this.deathAnimationFinishedHandler.bind(this));
 		document.addEventListener("Pacman: resetting", this.reset.bind(this));
 		document.addEventListener("Pacman: resetting finished", this.handleFinishedResetting.bind(this));
+		document.addEventListener("Pacman: level clear", this.handleLevelClear.bind(this));
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -110,6 +110,10 @@ class pacman
 */
 	activateListenerActions(event)
 	{
+		if (this.stateMachine.state == 10)
+		{
+			this.stateMachine.setPlaying();
+		}
 		switch(event.detail.action)
 		{
 			case "left": this.leftActive = true; break;
@@ -130,6 +134,7 @@ class pacman
 			case "x": this.currentLevelFood = 1; break;
 			case "d": this.playerDeath(); break;
 		}
+		
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗ █████╗ ██████╗ ████████╗
@@ -141,23 +146,33 @@ class pacman
 */
 	gameStart()
 	{
+		console.log("start");
 		clearInterval(this.currentGameInterval);
-		setTimeout(start.bind(this),40)
-		function start()
-		{
-			this.renderer.boundDestroyLevel(true);
-			this.score = 0;
-			this.scoreContainer.innerHTML="Score: 0";
-			this.extraLives = this.startExtraLives;
-			this.lifeContainer.innerHTML="Lives: "+this.extraLives;
-	
-			this.currentLevelNumber = -1;
-			this.nextLevel();
-		}
+		this.score = 0;
+		this.scoreContainer.innerHTML="Score: 0";
+		this.extraLives = this.startExtraLives;
+		this.lifeContainer.innerHTML="Lives: "+this.extraLives;
+		this.currentLevelNumber = -1;
+		this.stateMachine.setReadyScreen();
 	}
+
+	startPlaying()
+	{
+		this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
+	}
+/*
+███╗   ██╗███████╗██╗  ██╗████████╗    ██╗     ███████╗██╗   ██╗███████╗██╗     
+████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝    ██║     ██╔════╝██║   ██║██╔════╝██║     
+██╔██╗ ██║█████╗   ╚███╔╝    ██║       ██║     █████╗  ██║   ██║█████╗  ██║     
+██║╚██╗██║██╔══╝   ██╔██╗    ██║       ██║     ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║     
+██║ ╚████║███████╗██╔╝ ██╗   ██║       ███████╗███████╗ ╚████╔╝ ███████╗███████╗
+╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝       ╚══════╝╚══════╝  ╚═══╝  ╚══════╝╚══════╝
+*/
 
 	nextLevel()
 	{
+		console.log(333);
+		this.renderer.boundDestroyLevel(true);
 		this.currentLevelNumber++;
 		if (this.currentLevelNumber == this.levels.length)
 		{
@@ -196,7 +211,6 @@ class pacman
 		this.newdx = 0;
 		this.newdy = 0;
 		this.moveTimer = 0;
-		this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
@@ -209,7 +223,7 @@ class pacman
 */
 	gameStep()
 	{
-		var oldscore = this.player.score;
+		var oldscore = this.score;
 
 		if (this.leftActive)
 		{
@@ -241,24 +255,31 @@ class pacman
 
 		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
 			{
-				this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel);
+				this.score = this.score + (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
 				this.moveTimer = -40;
 			}
 
 		this.moveTimer = this.moveTimer + 40;
-		if (oldscore != this.player.score)
+		if (oldscore != this.score)
 		{
-			this.score = this.player.score;
 			this.scoreContainer.innerHTML="Score: "+this.score;
 			this.currentLevelFood--;
 			if (this.currentLevelFood == 0)
 			{
 				clearInterval(this.currentGameInterval);
-				setTimeout(this.renderer.boundDestroyLevel,120);
-				setTimeout(this.stateMachine.setLevelClearScreen,320);
+				this.stateMachine.setLevelClearScreen();
 			}
 		}	
 	}
+
+/*
+███████╗██╗   ██╗      ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
+██╔════╝██║   ██║      ██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
+█████╗  ██║   ██║      ███████║███████║██╔██╗ ██║██║  ██║██║     █████╗  ██████╔╝███████╗
+██╔══╝  ╚██╗ ██╔╝      ██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
+███████╗ ╚████╔╝██╗    ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
+╚══════╝  ╚═══╝ ╚═╝    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+*/
 
 	pausePressed()
 	{
@@ -279,7 +300,7 @@ class pacman
 
 	startPressed()
 	{
-		this.stateMachine.setPlaying();
+		this.stateMachine.setNewGame();
 	}
 
 	playerDeath()
@@ -307,8 +328,7 @@ class pacman
 
 	handleFinishedResetting()
 	{
-		this.stateMachine.setPlaying();
-		this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
+		this.stateMachine.setReadyScreen();
 	}
 
 	reset()
@@ -318,5 +338,21 @@ class pacman
 		this.newDirection = -1;
 		this.newdx = 0;
 		this.newdy = 0;
+	}
+
+	readyScreen(event)
+	{
+		console.log(event);
+		if (event.detail==undefined)
+		{
+			this.nextLevel();
+		}
+		
+	}
+
+	handleLevelClear()
+	{
+		clearInterval(this.currentGameInterval);
+		this.stateMachine.setReadyScreen();
 	}
 }

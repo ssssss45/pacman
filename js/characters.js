@@ -21,21 +21,22 @@ class character
 		this.dy = 0;
 		this.originX = params.x;
 		this.originY = params.y;
-		this.score = params.score;
 	}
 
 	move (dx,dy,direction,level)
-	{	
+	{
+		var score = 0;
+
 		function check(dx,dy,level)
 		{
-			if (level[dx]==undefined) return true;
+			if (level[dx] == undefined) return true;
 			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
 		}
 
-		function checkFood(dx,dy,level,renderer,score,isPlayer)
+		function checkFood(dx,dy,level,renderer,isPlayer)
 		{
-			if (level[dx]==undefined) return 0;
-			if (level[dx][dy]==2) 
+			if (level[dx] == undefined) return 0;
+			if (level[dx][dy] == 2) 
 			{
 				level[dx][dy] = 0;
 				renderer.destroySprite(dx,dy);
@@ -43,9 +44,7 @@ class character
 				{
 					score++;
 				}
-				return 1;
 			}
-			else return 0;
 		}
 
 		if (check(this.y+dy,this.x+dx,level)) 
@@ -57,7 +56,7 @@ class character
 
 		if((check(this.y+this.dy,this.x+this.dx,level))&&(this.direction!=-1))
 		{
-			if (this.eatsDots) this.score = this.score + checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.score,this.isPlayer);
+			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.isPlayer);
 			this.renderer.boundRenderMovement(this.x,this.y,this.dx,this.dy,this.direction);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
@@ -69,6 +68,7 @@ class character
 			else
 			if(this.y > level.length -1){this.y = 0}			
 		}
+		return score;
 	}
 }
 
