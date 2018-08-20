@@ -7,6 +7,7 @@ class pacmanRenderer
 		this.spriteSheetHight = params.spriteSheetHight;
 		this.spriteSheetWidthSprites = params.spriteSheetWidthSprites;
 		this.spriteSheetHightSprites = params.spriteSheetHightSprites;
+		this.enemies = params.enemies;
 		
 		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
 		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
@@ -28,6 +29,8 @@ class pacmanRenderer
 
 		this.playerTextures = [];
 		this.playerDeathTextures = [];
+		this.enemySprites = [];
+		this.enemyTextures = [];
 
 		this.createWallSheet();
 		this.loadSpriteSheet();
@@ -115,10 +118,8 @@ class pacmanRenderer
 			this.gameCanvas.stage.addChild(this.poly);
 		}
 
-
 		this.levels=params.levels;
 		this.boundDraw= this.draw.bind(this);
-		//setTimeout(boundDraw,200);
 
 		this.spriteArray = [];
 		document.addEventListener("Pacman: game paused", this.pause.bind(this));
@@ -146,6 +147,19 @@ class pacmanRenderer
 
 		fillTextureArray(this.playerSpritesLocations, this.playerTextures, this);
 		fillTextureArray(this.playerDeathSpritesLocations, this.playerDeathTextures, this);
+
+		//текстуры врагов
+		for (var i = 0; i< this.enemies.length; i++)
+		{
+			var enemy = this.enemies[i];
+			this.enemyTextures[enemy.location] = {};
+			this.enemyTextures[enemy.location].sprites = [];
+			this.enemyTextures[enemy.location].deadSprites = [];
+			this.enemyTextures[enemy.location].vulnerableSprites = [];
+			fillTextureArray(enemy.spriteLocations, this.enemyTextures[enemy.location].sprites, this) ;
+			fillTextureArray(enemy.deadSpriteLocations, this.enemyTextures[enemy.location].deadSprites, this) ;
+			fillTextureArray(enemy.vulnerableSpriteLocations, this.enemyTextures[enemy.location].vulnerableSprites, this) ;
+		}
 
 		function fillTextureArray(list, array, currThis)
 		{
@@ -175,7 +189,6 @@ class pacmanRenderer
 		this.wallsheetDiv = document.createElement('div');
 		this.wallSheet = new PIXI.Application({width: 352, height: 96});
 		this.container.appendChild(this.wallsheetDiv);
-		//this.wallsheetDiv.appendChild(this.wallSheet.view);
 
 		//отрисовка канваса стен
 		var rectangles = ['10,10,70,70,7','16,16,58,58,7','112,16,32,64,15','176,16,64,32,16','176,74,64,6,4','265,16,6,64,4'];
@@ -223,7 +236,7 @@ class pacmanRenderer
 		circle.drawCircle(32*9.5, 32*2.5, 9);
 		circle.endFill();
 		this.wallSheet.stage.addChild(circle);
-		//this.wallSheet.view.style.visibility = "Hidden";
+
 /*
 ████████╗███████╗██╗  ██╗████████╗██╗   ██╗██████╗ ███████╗███████╗
 ╚══██╔══╝██╔════╝╚██╗██╔╝╚══██╔══╝██║   ██║██╔══██╗██╔════╝██╔════╝
@@ -335,23 +348,26 @@ class pacmanRenderer
 				}
 				else
 				{
-
-					if((item>1)&&(item<7))
+					if((item>1))
 					{
 						if (item==6)
 						{
 							var sprite = new PIXI.extras.AnimatedSprite(this.playerTextures);
-							sprite.pivot.x = this.blockWidth / 2;
-							sprite.pivot.y = this.blockHight / 2;
-							sprite.x = (j+0.5)*this.blockWidth;
-							sprite.y = (i+0.5)*this.blockHight;
-							sprite.originX = sprite.x;
-							sprite.originY = sprite.y;
-							sprite.animationSpeed = 0.5;
-							this.interactiveSprites.push(sprite);
+							sprite = generateCharacter(i,j,sprite, this);
+							sprite.zOrder = 999;
+							this.interactiveSprites[6] = sprite;
 						}
 						else
 						{
+							if (item>6)
+							{
+								if (this.enemyTextures[item]!=undefined)
+								{
+									var sprite = new PIXI.extras.AnimatedSprite([this.enemyTextures[item].sprites[0]]);
+									sprite = generateCharacter(i,j,sprite, this);
+									this.interactiveSprites[item] = sprite;
+								}
+							}
 							var sprite = new PIXI.Sprite(this.otherTextures[item]);
 							sprite.x = j*this.blockWidth;
 							sprite.y = i*this.blockHight;
@@ -367,12 +383,25 @@ class pacmanRenderer
 						}	
 					}
 				}
+
+				function generateCharacter(i,j,sprite,currThis)
+				{
+					sprite.pivot.x = currThis.blockWidth / 2;
+					sprite.pivot.y = currThis.blockHight / 2;
+					sprite.x = (j+0.5)*currThis.blockWidth;
+					sprite.y = (i+0.5)*currThis.blockHight;
+					sprite.originX = sprite.x;
+					sprite.originY = sprite.y;
+					sprite.animationSpeed = 0.5;
+					return sprite;
+				}
 			}
 		}
 
 		for (var i=0; i<this.interactiveSprites.length;i++)
 		{
-			this.gameCanvas.stage.addChild(this.interactiveSprites[i]);	
+			var sprite = this.interactiveSprites[i];
+			if (sprite != undefined)this.gameCanvas.stage.addChild(sprite);	
 		}
 		this.pauseBox.pauseBox = true;
 
@@ -381,6 +410,7 @@ class pacmanRenderer
 		initObjects(this.gameOverText, 0, this);
 		initObjects(this.gameOverScore, 0, this);
 		initObjects(this.readyScreenText, 1, this);
+		
 		function initObjects(obj, alpha, currThis)
 		{
 			currThis.gameCanvas.stage.addChild(obj);
@@ -418,7 +448,7 @@ class pacmanRenderer
 	{
 		for (var i = 0; i < this.interactiveSprites.length; i++)
 		{
-			clearInterval(this.interactiveSprites[i].animInterval);
+			if(this.interactiveSprites[i] != undefined) clearInterval(this.interactiveSprites[i].animInterval);
 		}
 
 		var repeats = 10;
@@ -468,12 +498,10 @@ class pacmanRenderer
 ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   
 ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
 ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
-                                                                      
 */
-	renderMovement(x,y,dx,dy,direction)
+	renderMovement(x, y, dx, dy ,direction, id)
 	{
-		//var sprite = this.spriteArray[y][x];
-		var sprite = this.interactiveSprites[0];
+		var sprite = this.interactiveSprites[id];
 		var level = this.currentLevel;
 		var visibilityMarker = true;
 
@@ -486,13 +514,20 @@ class pacmanRenderer
 		sprite.visible = visibilityMarker;
 		this.animateChar(x, y, dx * this.blockWidth, dy * this.blockHight, sprite);
 
-		switch (direction)
-		{
-			case 0: sprite.rotation = Math.PI; break;
-			case 1: sprite.rotation = -1.57; break;
-			case 2: sprite.rotation = 0; break;
-			case 3: sprite.rotation = 1.57; break;
+		if (id == 6)
+		{	
+			switch (direction)
+			{
+				case 0: sprite.rotation = Math.PI; break;
+				case 1: sprite.rotation = -1.57; break;
+				case 2: sprite.rotation = 0; break;
+				case 3: sprite.rotation = 1.57; break;
+			}
 		}
+		else
+		{
+
+		}	
 	}
 
 	//уничтожение спрайта (при "съедении")
@@ -566,7 +601,7 @@ class pacmanRenderer
 
 	animatePlayerDeath()
 	{
-		var player = this.interactiveSprites[0];
+		var player = this.interactiveSprites[6];
 		player.rotation = 0;
 		player.textures = [this.playerDeathTextures[0]];
 		var i = 0;
@@ -592,11 +627,17 @@ class pacmanRenderer
 
 	resetAfterDeath()
 	{
-		var player = this.interactiveSprites[0];
-		player.stop();
-		player.textures = this.playerTextures;
-		player.x = player.originX;
-		player.y = player.originY;
+		for (var i = 0; i < this.interactiveSprites.length; i++)
+		{
+			var player = this.interactiveSprites[i];
+			if (player!=undefined)
+			{
+				player.stop();
+				if (i==6) player.textures = this.playerTextures;
+				player.x = player.originX;
+				player.y = player.originY;
+			}
+		}
 		var event = new CustomEvent("Pacman: resetting finished");
 		document.dispatchEvent(event);
 	}

@@ -14,6 +14,8 @@ class pacman
 		this.startButton.setAttribute("onClick","pacmanGame.startPressed()");
 		this.container.appendChild(this.startButton);
 
+		this.enemies = params.enemies;
+
 		this.pauseButton = document.createElement("button");
 		var pausePlace = params.width - 45;
 		this.pauseButton.innerHTML="Pause";
@@ -49,13 +51,15 @@ class pacman
 			"levels":this.levels,
 			"playerSpritesLocations" : params.playerSpritesLocations,
 			"playerDeathSpritesLocations" : params.playerDeathSpritesLocations,
-			"container" : "pacman-container"
+			"container" : "pacman-container",
+			"enemies" : this.enemies
 		});
 
 		this.canvas = this.renderer.returnContainer();
 
 		this.startExtraLives = params.startExtraLives || 2;
 		this.extraLives = this.startExtraLives;
+		this.enemyArray = [];
 
 		//стейт машина
 		this.stateMachine = new pacmanStateMachine();
@@ -146,7 +150,6 @@ class pacman
 */
 	gameStart()
 	{
-		console.log("start");
 		clearInterval(this.currentGameInterval);
 		this.score = 0;
 		this.scoreContainer.innerHTML="Score: 0";
@@ -171,9 +174,9 @@ class pacman
 
 	nextLevel()
 	{
-		console.log(333);
 		this.renderer.boundDestroyLevel(true);
 		this.currentLevelNumber++;
+		this.enemyArray = [];
 		if (this.currentLevelNumber == this.levels.length)
 		{
 			this.currentLevelNumber = 0;
@@ -183,11 +186,12 @@ class pacman
 
 		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.currentLevelNumber]));
 		this.currentLevel[this.currentLevel.length] = [];
-		for (var i=0; i<this.currentLevel.length;i++)
+		for (var i = 0; i<this.currentLevel.length;i++)
 		{
-			for (var j=0; j<this.currentLevel[0].length;j++)
+			for (var j = 0; j<this.currentLevel[0].length;j++)
 			{
-				if (this.currentLevel[i][j] == 6)
+				var item = this.currentLevel[i][j];
+				if (item == 6)
 				{
 					this.player = new character ({
 							"isPlayer" : true,
@@ -197,8 +201,39 @@ class pacman
 							"originY" : i,
 							"renderer" : this.renderer,
 							"eatsDots" : true,
-							"score" : this.score
+							"score" : this.score,
+							"id" : 6
 							});
+				}
+				if (item > 6)
+				{
+					var enem;
+
+					for (var k = 0; k < this.enemies.length; k++)
+					{
+						if (this.enemies[k].location == item)	
+						{
+							enem = this.enemies[k];
+							
+						}
+					}
+
+					if (enem != undefined)
+					{
+						var currentEnemy = new enemy({
+								"isPlayer" : false,
+								"x" : j,
+								"y" : i,
+								"originX" : j,
+								"originY" : i,
+								"renderer" : this.renderer,
+								"eatsDots" : enem.eatsDots,
+								"killsPlayer" : enem.killsPlayer,
+								"moveType" : enem.moveType,
+								"id" : item
+								});
+						this.enemyArray.push(currentEnemy);
+					}
 				}
 				if (this.currentLevel[i][j] == 2)
 				{
@@ -257,6 +292,12 @@ class pacman
 			{
 				this.score = this.score + (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
 				this.moveTimer = -40;
+
+				for (var i = 0; i < this.enemyArray.length; i++)
+				{	var currentEnemy = this.enemyArray[i];
+					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(currentEnemy.character.x,currentEnemy.character.y,this.currentLevel);
+					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)) {this.playerDeath()}
+				}
 			}
 
 		this.moveTimer = this.moveTimer + 40;
@@ -333,6 +374,13 @@ class pacman
 
 	reset()
 	{
+		for (var i = 0; i<this.enemyArray.length;i++)
+		{
+			var enemy = this.enemyArray[i]
+			enemy.character.x = enemy.character.originX;
+			enemy.character.y = enemy.character.originY;
+			console.log(enemy.x)
+		}
 		this.player.x = this.player.originX;
 		this.player.y = this.player.originY;
 		this.newDirection = -1;
@@ -342,7 +390,6 @@ class pacman
 
 	readyScreen(event)
 	{
-		console.log(event);
 		if (event.detail==undefined)
 		{
 			this.nextLevel();

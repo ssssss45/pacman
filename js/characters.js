@@ -21,16 +21,24 @@ class character
 		this.dy = 0;
 		this.originX = params.x;
 		this.originY = params.y;
+		this.id = params.id;
 	}
 
 	move (dx,dy,direction,level)
 	{
 		var score = 0;
 
-		function check(dx,dy,level)
+		function check(dx,dy,level, isPlayer)
 		{
 			if (level[dx] == undefined) return true;
-			return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
+			if (isPlayer)
+				{
+					return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
+				}
+				else
+				{
+					return level[dx][dy] != 1;	
+				}
 		}
 
 		function checkFood(dx,dy,level,renderer,isPlayer)
@@ -40,24 +48,23 @@ class character
 			{
 				level[dx][dy] = 0;
 				renderer.destroySprite(dx,dy);
-				if (isPlayer)
 				{
 					score++;
 				}
 			}
 		}
 
-		if (check(this.y+dy,this.x+dx,level)) 
+		if (check(this.y+dy,this.x+dx,level,this.isPlayer)) 
 		{
 			this.dx = dx;
 			this.dy = dy;
 			this.direction = direction
 		}
 
-		if((check(this.y+this.dy,this.x+this.dx,level))&&(this.direction!=-1))
+		if((check(this.y+this.dy,this.x+this.dx,level,this.isPlayer))&&(this.direction!=-1))
 		{
 			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.isPlayer);
-			this.renderer.boundRenderMovement(this.x,this.y,this.dx,this.dy,this.direction);
+			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
 			if(this.x < 0){this.x = level[0].length - 1}
@@ -69,32 +76,5 @@ class character
 			if(this.y > level.length -1){this.y = 0}			
 		}
 		return score;
-	}
-}
-
-/*
-███████╗███╗   ██╗        ██████╗██╗      █████╗ ███████╗███████╗
-██╔════╝████╗  ██║       ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
-█████╗  ██╔██╗ ██║       ██║     ██║     ███████║███████╗███████╗
-██╔══╝  ██║╚██╗██║       ██║     ██║     ██╔══██║╚════██║╚════██║
-███████╗██║ ╚████║██╗    ╚██████╗███████╗██║  ██║███████║███████║
-╚══════╝╚═╝  ╚═══╝╚═╝     ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
-*/
-
-class enemy
-{
-	constructor(params)
-	{
-		this.character = new character ({
-							"isPlayer" : false,
-							"x" : params.x,
-							"y" : params.y,
-							"renderer" : params.renderer,
-							"eatsDots" : params.eatsDots
-						});
-		this.speed = params.speed;
-		this.killsPlayer = params.killsPlayer;
-		this.move = this.character.move;
-		this.delay = params.delay;
 	}
 }
