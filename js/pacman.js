@@ -72,7 +72,6 @@ class pacman
 		addKeyToController("up",[38],this.keycon);
 		addKeyToController("down",[40],this.keycon);
 		addKeyToController("x",[88],this.keycon);
-		addKeyToController("d",[68],this.keycon);
 
 		function addKeyToController(name,keys,keycon)
 		{
@@ -220,7 +219,8 @@ class pacman
 
 					if (enem != undefined)
 					{
-						var currentEnemy = new enemy({
+						console.log(enem);
+							var currentEnemy = new enemy({
 								"isPlayer" : false,
 								"x" : j,
 								"y" : i,
@@ -292,11 +292,11 @@ class pacman
 			{
 				this.score = this.score + (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
 				this.moveTimer = -40;
-
+				console.log(this.enemyArray);
 				for (var i = 0; i < this.enemyArray.length; i++)
 				{	var currentEnemy = this.enemyArray[i];
 					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(currentEnemy.character.x,currentEnemy.character.y,this.currentLevel);
-					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)) {this.playerDeath()}
+					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
 				}
 			}
 

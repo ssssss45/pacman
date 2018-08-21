@@ -348,15 +348,12 @@ class pacmanRenderer
 				}
 				else
 				{
-					if((item>1))
+					if((item > 1))
 					{
-						if (item==6)
+						if (item == 6)
 						{
-							var playerContainer = new PIXI.Container();
 							var sprite = new PIXI.extras.AnimatedSprite(this.playerTextures);
 							sprite = generateCharacter(i,j,sprite, this);
-							sprite.zOrder = 1;
-							//playerContainer.addChild(sprite);
 							this.interactiveSprites[6] = sprite;
 						}
 						else
@@ -367,15 +364,15 @@ class pacmanRenderer
 								{
 									var sprite = new PIXI.extras.AnimatedSprite([this.enemyTextures[item].sprites[0]]);
 									sprite = generateCharacter(i,j,sprite, this);
-									sprite.zOrder = 11;
 									this.interactiveSprites[item] = sprite;
+									sprite.enemyTextures = this.enemyTextures[item];
 								}
 							}
 							else
 							{
 								var sprite = new PIXI.Sprite(this.otherTextures[item]);
-								sprite.x = j*this.blockWidth;
-								sprite.y = i*this.blockHight;
+								sprite.x = j * this.blockWidth;
+								sprite.y = i * this.blockHight;
 								this.gameCanvas.stage.addChild(sprite);		
 							}
 							
@@ -384,7 +381,7 @@ class pacmanRenderer
 						sprite.width = this.blockWidth;
 						sprite.height = this.blockHight;
 						sprite.alpha = 0;
-						if ((item==2)||(item==3))
+						if ((item == 2) || (item == 3))
 						{
 							this.spriteArray[i][j] = sprite;	
 						}	
@@ -395,8 +392,8 @@ class pacmanRenderer
 				{
 					sprite.pivot.x = currThis.blockWidth / 2;
 					sprite.pivot.y = currThis.blockHight / 2;
-					sprite.x = (j+0.5)*currThis.blockWidth;
-					sprite.y = (i+0.5)*currThis.blockHight;
+					sprite.x = (j + 0.5) * currThis.blockWidth;
+					sprite.y = (i + 0.5) * currThis.blockHight;
 					sprite.originX = sprite.x;
 					sprite.originY = sprite.y;
 					sprite.animationSpeed = 0.5;
@@ -533,7 +530,13 @@ class pacmanRenderer
 		}
 		else
 		{
-
+			switch (direction)
+			{
+				case 0: sprite.texture = sprite.enemyTextures.sprites[0]; break;
+				case 1: sprite.texture = sprite.enemyTextures.sprites[1]; break;
+				case 2: sprite.texture = sprite.enemyTextures.sprites[2]; break;
+				case 3: sprite.texture = sprite.enemyTextures.sprites[3]; break;
+			}
 		}	
 	}
 

@@ -20,8 +20,7 @@ class enemy
 							"id" : params.id
 						});
 		this.speed = params.speed||1;
-		this.killsPlayer = params.killsPlayer||true;
-		//this.move = this.character.move||0;
+		this.killsPlayer = params.killsPlayer;
 		this.delay = params.delay||250;
 		this.active = false;
 		this.vulnerable = false;
@@ -30,9 +29,13 @@ class enemy
 
 		this.dx = this.character.dx;
 		this.dy = this.character.dy;
+
+		this.lastPlayerX;
+		this.lastPlayerY;
 		switch (params.moveType)
 		{
 			case 0: this.move = this.randomMovement;break;
+			case 1: this.move = this.followIfSeen;break;
 		}
 
 	}
@@ -61,9 +64,21 @@ class enemy
 		}
 	}
 
+	followIfSeen(x, y, level)
+	{
+		function check(dx, dy)
+		{}
+	}
+
+	clearData()
+	{
+		this.lastPlayerX = undefined;
+		this.lastPlayerY = undefined;
+	}
+
 	getDxDyFromDirection(direction)
 	{
-		 var result = {};
+		var result = {};
 		switch (direction)
 		{
 			case 0:
@@ -82,8 +97,8 @@ class enemy
 			break;
 
 			case 3:
-				result.dx = 1;
-				result.dy = 0;
+				result.dx = 0;
+				result.dy = 1;
 			break;
 		}
 
