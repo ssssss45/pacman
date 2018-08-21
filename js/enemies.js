@@ -40,8 +40,10 @@ class enemy
 
 	}
 
-	randomMovement(x, y, level)
+	randomMovement(level)
 	{
+		var x = this.character.x;
+		var y = this.character.y;
 		console.log();
 		var flag = false;
 		var direction = this.getRandomInt(0,3);
@@ -64,10 +66,90 @@ class enemy
 		}
 	}
 
-	followIfSeen(x, y, level)
+	followIfSeen(level, playerX, playerY)
 	{
-		function check(dx, dy)
-		{}
+		var direction = -1;
+		if ((this.character.x == this.lastPlayerX)&&(this.character.y == this.lastPlayerY))
+		{
+			this.lastPlayerX = undefined;
+			this.lastPlayerY = undefined;
+			var result;
+			this.dx = 0;
+			this.dy = 0;
+			this.direction = -1;
+		}
+
+		if (playerX == this.character.x)
+		{
+			setParams(0, 1, 3, this);
+			result = check (this.character.x, this.character.y, 0, 1, playerX, playerY, level);
+			if (result == undefined)
+			{
+				setParams(0, -1, 1, this);
+				result = check (this.character.x, this.character.y, 0, -1, playerX, playerY, level);
+			}
+		}
+
+		if (playerY == this.character.y)
+		{
+			setParams(-1, 0, 0, this);
+			result = check (this.character.x, this.character.y, -1, 0, playerX, playerY, level);
+			console.log(result);
+			if (result == undefined)
+			{
+				setParams(1, 0, 2, this);
+				result = check (this.character.x, this.character.y, 1, 0, playerX, playerY, level);
+			}
+		}
+
+		if (result != undefined)
+		{
+			this.lastPlayerX = result.x;
+			this.lastPlayerY = result.y;
+		}
+
+		function setParams(cdx, cdy, dir, currThis)
+		{
+			currThis.dx = cdx;
+			currThis.dy = cdy;
+			currThis.direction = dir;
+		}
+
+		function check(x, y, dx, dy, playerX, playerY, level)
+		{
+			var i = x + dx;
+			var j = y + dy;
+			var width = level[0].length;
+			var hight = level.length;
+			var noWallFlag = true;
+			while ((i > -1) && (j > -1) && (i < width) && (j < hight) && (noWallFlag))
+			{
+				if ((i == playerX) && (j == playerY))
+				{
+					var result = {};
+					result.x = i;
+					result.y = j;
+					return result;
+				}
+				if (level[j][i] == 1)
+				{
+					return undefined;
+				}
+
+				i += dx;
+				j += dy;
+			}
+		}
+		if(this.lastPlayerX == undefined)
+		{
+			return this.randomMovement(level);
+		}
+		else
+		{
+			console.log(this.lastPlayerX);
+			console.log(this.lastPlayerY);
+			return this.character.move(this.dx, this.dy, this.direction, level);
+		}
 	}
 
 	clearData()

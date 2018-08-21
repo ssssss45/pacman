@@ -219,7 +219,6 @@ class pacman
 
 					if (enem != undefined)
 					{
-						console.log(enem);
 							var currentEnemy = new enemy({
 								"isPlayer" : false,
 								"x" : j,
@@ -292,10 +291,10 @@ class pacman
 			{
 				this.score = this.score + (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
 				this.moveTimer = -40;
-				console.log(this.enemyArray);
 				for (var i = 0; i < this.enemyArray.length; i++)
 				{	var currentEnemy = this.enemyArray[i];
-					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(currentEnemy.character.x,currentEnemy.character.y,this.currentLevel);
+					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
+					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
 					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
 				}
 			}
@@ -379,7 +378,7 @@ class pacman
 			var enemy = this.enemyArray[i]
 			enemy.character.x = enemy.character.originX;
 			enemy.character.y = enemy.character.originY;
-			console.log(enemy.x)
+			enemy.clearData();
 		}
 		this.player.x = this.player.originX;
 		this.player.y = this.player.originY;

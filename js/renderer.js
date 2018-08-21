@@ -71,6 +71,8 @@ class pacmanRenderer
 
 		this.poly = new PIXI.Graphics();
 
+		this.halfPI = Math.PI/2;
+
 		//текст экрана готовности
 		this.readyScreenText = textGen("READY?", this.gameWidth/10,this.gameWidth/3,this.gameHight/2,true);
 
@@ -523,9 +525,9 @@ class pacmanRenderer
 			switch (direction)
 			{
 				case 0: sprite.rotation = Math.PI; break;
-				case 1: sprite.rotation = -1.57; break;
+				case 1: sprite.rotation = -this.halfPI; break;
 				case 2: sprite.rotation = 0; break;
-				case 3: sprite.rotation = 1.57; break;
+				case 3: sprite.rotation = this.halfPI; break;
 			}
 		}
 		else
