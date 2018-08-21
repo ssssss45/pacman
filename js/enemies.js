@@ -123,12 +123,16 @@ class enemy
 
 		function checkAxis(dx,dy, dir1, dir2, currThis)
 		{
-			setParams(dx, dy, dir1, currThis);
+
 			result = check (currThis.character.x, currThis.character.y, dx, dy, playerX, playerY, level);
 			if (result == undefined)
 			{
-				setParams(-dx, -dy, dir2, currThis);
 				result = check (currThis.character.x, currThis.character.y, -dx, -dy, playerX, playerY, level);
+				if (result!=undefined)setParams(-dx, -dy, dir2, currThis);
+			}
+			else
+			{
+				if (result!=undefined)setParams(dx, dy, dir1, currThis);
 			}
 		}
 
@@ -145,8 +149,8 @@ class enemy
 			var j = y + dy;
 			var width = level[0].length;
 			var hight = level.length;
-			var noWallFlag = true;
-			while ((i > -1) && (j > -1) && (i < width) && (j < hight) && (noWallFlag))
+
+			while ((i > -1) && (j > -1) && (i <= width) && (j <= hight))
 			{
 				if ((i == playerX) && (j == playerY))
 				{
@@ -165,6 +169,8 @@ class enemy
 			}
 		}
 	}
+
+
 /*
 ███╗   ███╗██╗███████╗ ██████╗
 ████╗ ████║██║██╔════╝██╔════╝

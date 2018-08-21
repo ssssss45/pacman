@@ -102,6 +102,7 @@ class pacman
 		document.addEventListener("Pacman: resetting", this.reset.bind(this));
 		document.addEventListener("Pacman: resetting finished", this.handleFinishedResetting.bind(this));
 		document.addEventListener("Pacman: level clear", this.handleLevelClear.bind(this));
+		document.addEventListener("visibilitychange", this.tabChanged.bind(this));
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -292,7 +293,8 @@ class pacman
 				this.score = this.score + (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
 				this.moveTimer = -40;
 				for (var i = 0; i < this.enemyArray.length; i++)
-				{	var currentEnemy = this.enemyArray[i];
+				{	
+					var currentEnemy = this.enemyArray[i];
 					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
 					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
 					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
@@ -320,6 +322,11 @@ class pacman
 ███████╗ ╚████╔╝██╗    ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
 ╚══════╝  ╚═══╝ ╚═╝    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
 */
+
+	tabChanged()
+	{
+		if ((document.hidden)||(this.stateMachine.state!=3)) {this.stateMachine.setPause();}
+	}
 
 	pausePressed()
 	{

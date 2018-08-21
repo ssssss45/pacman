@@ -569,11 +569,12 @@ class pacmanRenderer
 
 		function animate()
 		{	
+			
 			sprite.stop();
-			sprite.x = sprite.x + speedX;
-			sprite.y = sprite.y + speedY;
-			if (sprite.repeats != 5)
+			if (sprite.repeats < 6)
 			{
+				sprite.x = sprite.x + speedX;
+				sprite.y = sprite.y + speedY;
 				sprite.play();
 				sprite.repeats++;
 			}
