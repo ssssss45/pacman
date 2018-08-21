@@ -39,7 +39,15 @@ class enemy
 		}
 
 	}
+/*
+██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
+██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔═══██╗████╗ ████║
+██████╔╝███████║██╔██╗ ██║██║  ██║██║   ██║██╔████╔██║
+██╔══██╗██╔══██║██║╚██╗██║██║  ██║██║   ██║██║╚██╔╝██║
+██║  ██║██║  ██║██║ ╚████║██████╔╝╚██████╔╝██║ ╚═╝ ██║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝ ╚═╝     ╚═╝
 
+*/
 	randomMovement(level)
 	{
 		var x = this.character.x;
@@ -65,7 +73,14 @@ class enemy
 			}
 		}
 	}
-
+/*
+██╗███████╗    ███████╗███████╗███████╗███╗   ██╗
+██║██╔════╝    ██╔════╝██╔════╝██╔════╝████╗  ██║
+██║█████╗      ███████╗█████╗  █████╗  ██╔██╗ ██║
+██║██╔══╝      ╚════██║██╔══╝  ██╔══╝  ██║╚██╗██║
+██║██║         ███████║███████╗███████╗██║ ╚████║
+╚═╝╚═╝         ╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝
+*/
 	followIfSeen(level, playerX, playerY)
 	{
 		var direction = -1;
@@ -81,31 +96,40 @@ class enemy
 
 		if (playerX == this.character.x)
 		{
-			setParams(0, 1, 3, this);
-			result = check (this.character.x, this.character.y, 0, 1, playerX, playerY, level);
-			if (result == undefined)
-			{
-				setParams(0, -1, 1, this);
-				result = check (this.character.x, this.character.y, 0, -1, playerX, playerY, level);
-			}
+			checkAxis(0,1,3,1,this);
 		}
 
 		if (playerY == this.character.y)
 		{
-			setParams(-1, 0, 0, this);
-			result = check (this.character.x, this.character.y, -1, 0, playerX, playerY, level);
-			console.log(result);
-			if (result == undefined)
-			{
-				setParams(1, 0, 2, this);
-				result = check (this.character.x, this.character.y, 1, 0, playerX, playerY, level);
-			}
+			checkAxis(1,0,2,0,this);
 		}
 
 		if (result != undefined)
 		{
 			this.lastPlayerX = result.x;
 			this.lastPlayerY = result.y;
+		}
+
+		if(this.lastPlayerX == undefined)
+		{
+			return this.randomMovement(level);
+		}
+		else
+		{
+			console.log(this.lastPlayerX);
+			console.log(this.lastPlayerY);
+			return this.character.move(this.dx, this.dy, this.direction, level);
+		}
+
+		function checkAxis(dx,dy, dir1, dir2, currThis)
+		{
+			setParams(dx, dy, dir1, currThis);
+			result = check (currThis.character.x, currThis.character.y, dx, dy, playerX, playerY, level);
+			if (result == undefined)
+			{
+				setParams(-dx, -dy, dir2, currThis);
+				result = check (currThis.character.x, currThis.character.y, -dx, -dy, playerX, playerY, level);
+			}
 		}
 
 		function setParams(cdx, cdy, dir, currThis)
@@ -140,18 +164,15 @@ class enemy
 				j += dy;
 			}
 		}
-		if(this.lastPlayerX == undefined)
-		{
-			return this.randomMovement(level);
-		}
-		else
-		{
-			console.log(this.lastPlayerX);
-			console.log(this.lastPlayerY);
-			return this.character.move(this.dx, this.dy, this.direction, level);
-		}
 	}
-
+/*
+███╗   ███╗██╗███████╗ ██████╗
+████╗ ████║██║██╔════╝██╔════╝
+██╔████╔██║██║███████╗██║     
+██║╚██╔╝██║██║╚════██║██║     
+██║ ╚═╝ ██║██║███████║╚██████╗
+╚═╝     ╚═╝╚═╝╚══════╝ ╚═════╝
+*/
 	clearData()
 	{
 		this.lastPlayerX = undefined;
