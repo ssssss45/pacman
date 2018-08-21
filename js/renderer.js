@@ -327,10 +327,10 @@ class pacmanRenderer
 					if (sum==90)
 					{
 						var texture;
-						if (!check(level,i-1,j+1)) texture=18;
-						if (!check(level,i-1,j-1)) texture=10;
-						if (!check(level,i+1,j-1)) texture=72;
-						if (!check(level,i+1,j+1)) texture=80;
+						if (!check(level,i-1,j+1)) texture = 18;
+						if (!check(level,i-1,j-1)) texture = 10;
+						if (!check(level,i+1,j-1)) texture = 72;
+						if (!check(level,i+1,j+1)) texture = 80;
 						
 						var sprite = new PIXI.Sprite(this.wallTextures[texture]);	
 					}
@@ -352,32 +352,39 @@ class pacmanRenderer
 					{
 						if (item==6)
 						{
+							var playerContainer = new PIXI.Container();
 							var sprite = new PIXI.extras.AnimatedSprite(this.playerTextures);
 							sprite = generateCharacter(i,j,sprite, this);
-							sprite.zOrder = 999;
+							sprite.zOrder = 1;
+							//playerContainer.addChild(sprite);
 							this.interactiveSprites[6] = sprite;
 						}
 						else
 						{
-							if (item>6)
+							if (item > 6)
 							{
 								if (this.enemyTextures[item]!=undefined)
 								{
 									var sprite = new PIXI.extras.AnimatedSprite([this.enemyTextures[item].sprites[0]]);
 									sprite = generateCharacter(i,j,sprite, this);
+									sprite.zOrder = 11;
 									this.interactiveSprites[item] = sprite;
 								}
 							}
-							var sprite = new PIXI.Sprite(this.otherTextures[item]);
-							sprite.x = j*this.blockWidth;
-							sprite.y = i*this.blockHight;
-							this.gameCanvas.stage.addChild(sprite);	
+							else
+							{
+								var sprite = new PIXI.Sprite(this.otherTextures[item]);
+								sprite.x = j*this.blockWidth;
+								sprite.y = i*this.blockHight;
+								this.gameCanvas.stage.addChild(sprite);		
+							}
+							
 						}
 						
 						sprite.width = this.blockWidth;
 						sprite.height = this.blockHight;
 						sprite.alpha = 0;
-						if ((item==2)||(item==3)||(item==6))
+						if ((item==2)||(item==3))
 						{
 							this.spriteArray[i][j] = sprite;	
 						}	
@@ -398,7 +405,7 @@ class pacmanRenderer
 			}
 		}
 
-		for (var i=0; i<this.interactiveSprites.length;i++)
+		for (var i = this.interactiveSprites.length-1; i>-1;i--)
 		{
 			var sprite = this.interactiveSprites[i];
 			if (sprite != undefined)this.gameCanvas.stage.addChild(sprite);	
@@ -410,7 +417,7 @@ class pacmanRenderer
 		initObjects(this.gameOverText, 0, this);
 		initObjects(this.gameOverScore, 0, this);
 		initObjects(this.readyScreenText, 1, this);
-		
+
 		function initObjects(obj, alpha, currThis)
 		{
 			currThis.gameCanvas.stage.addChild(obj);
@@ -633,7 +640,7 @@ class pacmanRenderer
 			if (player!=undefined)
 			{
 				player.stop();
-				if (i==6) player.textures = this.playerTextures;
+				if (i == 6) player.textures = this.playerTextures;
 				player.x = player.originX;
 				player.y = player.originY;
 			}
