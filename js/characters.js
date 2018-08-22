@@ -24,11 +24,11 @@ class character
 		this.id = params.id;
 	}
 
-	move (dx,dy,direction,level, isDead, vulnerable)
+	move (dx,dy,direction,level, isDead, vulnerable, outOfCage)
 	{
 		var score = 0;
 
-		function check(dx,dy,level, isPlayer)
+		function check(dx,dy,level, isPlayer, outOfCage)
 		{
 			if (level[dx] == undefined) return true;
 			if (isPlayer)
@@ -37,7 +37,15 @@ class character
 				}
 				else
 				{
-					return level[dx][dy] != 1;	
+					console.log(outOfCage);
+					if (!outOfCage)
+					{
+						return level[dx][dy] != 1;	
+					}
+					else
+					{
+						return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));		
+					}
 				}
 		}
 
@@ -58,14 +66,14 @@ class character
 			}
 		}
 
-		if (check(this.y+dy,this.x+dx,level,this.isPlayer)) 
+		if (check(this.y+dy,this.x+dx,level,this.isPlayer,outOfCage)) 
 		{
 			this.dx = dx;
 			this.dy = dy;
 			this.direction = direction
 		}
 
-		if((check(this.y+this.dy,this.x+this.dx,level,this.isPlayer))&&(this.direction!=-1))
+		if((check(this.y+this.dy,this.x+this.dx,level,this.isPlayer,outOfCage))&&(this.direction!=-1))
 		{
 			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.isPlayer);
 			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, vulnerable, isDead);

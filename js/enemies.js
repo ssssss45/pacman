@@ -67,7 +67,7 @@ class enemy
 			if(level[y + dir.dy][x + dir.dx] != 1)
 			{
 				flag = true;
-				return this.character.move(dir.dx,dir.dy,direction,level,this.isDead,this.vulnerable);
+				return this.character.move(dir.dx,dir.dy,direction,level,this.isDead,this.vulnerable, this.outOfCage);
 			}
 			else
 			{
@@ -122,7 +122,7 @@ class enemy
 		}
 		else
 		{
-			return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable);
+			return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
 		}
 
 		function checkAxis(dx,dy, dir1, dir2, currThis)
@@ -204,7 +204,7 @@ class enemy
 		
 		var direction = this.getDirectionFromDxDy(dx,dy);
 
-		return this.character.move(dx, dy, direction, level,this.isDead,this.vulnerable);
+		return this.character.move(dx, dy, direction, level,this.isDead,this.vulnerable, this.outOfCage);
 
 		function findPath(world, pathStart, pathEnd)
 		{

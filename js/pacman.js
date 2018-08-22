@@ -18,6 +18,8 @@ class pacman
 
 		this.ticksVulnerable = params.ticksVulnerable;
 
+		this.outOfCagePoint = {};
+
 		this.pauseButton = document.createElement("button");
 		var pausePlace = params.width - 45;
 		this.pauseButton.innerHTML="Pause";
@@ -238,9 +240,16 @@ class pacman
 						this.enemyArray.push(currentEnemy);
 					}
 				}
-				if (this.currentLevel[i][j] == 2)
+
+				if (item == 2)
 				{
 					this.currentLevelFood++; 
+				}
+
+				if (item == -2)
+				{
+					this.outOfCagePoint.x = j;
+					this.outOfCagePoint.y = i;
 				}
 			}
 		}
@@ -335,7 +344,18 @@ class pacman
 					
 				if (!currentEnemy.isDead)
 				{
+					if (!currentEnemy.outOfCage)
+					{
+						if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
+						{
+							currentEnemy.outOfCage = true;
+						}
+						currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);		
+					}
+					else
+					{
 					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
+					}
 				}
 				else
 				{
@@ -350,6 +370,7 @@ class pacman
 					{
 						currentEnemy.vulnerable = 0;
 						currentEnemy.isDead = true;
+						currentEnemy.outOfCage = false;
 						currentEnemy.clearData();
 					}
 					//если нет, противник может есть игрока и жив, то погибает игрок
