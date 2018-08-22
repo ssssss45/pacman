@@ -23,7 +23,8 @@ class enemy
 		this.killsPlayer = params.killsPlayer;
 		this.delay = params.delay||250;
 		this.active = false;
-		this.vulnerable = false;
+		this.canBeVulnerable = params.canBeVulnerable;
+		this.isDead = 0;
 		this.x = this.character.x;
 		this.y = this.character.y;
 
@@ -38,6 +39,7 @@ class enemy
 			case 1: this.move = this.followIfSeen;break;
 			case 2: this.move = this.aStar;break;
 		}
+		this.deadMove = this.aStar;
 
 	}
 /*
@@ -148,8 +150,9 @@ class enemy
 			var j = y + dy;
 			var width = level[0].length;
 			var hight = level.length;
-
-			while ((i > -1) && (j > -1) && (i <= width) && (j <= hight))
+			var cycled = 0;
+(i > -1) && (j > -1) && (i <= width) && (j <= hight)
+			while (cycled<2)
 			{
 				if ((i == playerX) && (j == playerY))
 				{
@@ -162,6 +165,10 @@ class enemy
 				{
 					return undefined;
 				}
+				if (i == -1) {i = width; cycled ++;}
+				if (j == -1) {j = hight; cycled ++;}
+				if (i > width) {i = 0; cycled ++;}
+				if (j > hight) {j = 0; cycled ++;}
 
 				i += dx;
 				j += dy;
@@ -181,8 +188,17 @@ class enemy
 	{
 		var path = findPath(level, [this.character.y,this.character.x], [playerY, playerX]);
 
-		var dx = path[1][1] - this.character.x;
-		var dy = path[1][0] - this.character.y;
+		if (path[1] != undefined)
+		{
+			var dx = path[1][1] - this.character.x;
+			var dy = path[1][0] - this.character.y;	
+		}
+		else
+		{
+			var dx = path[0][1] - this.character.x;
+			var dy = path[0][0] - this.character.y;		
+		}
+		
 		var direction = this.getDirectionFromDxDy(dx,dy);
 
 		return this.character.move(dx, dy, direction, level);
@@ -217,11 +233,11 @@ class enemy
 				var E = x + 1;
 				var W = x - 1;
 
-				if (E < 0) E = worldWidth;
-				if (W > worldWidth) W = 0;
+				if (E < -1) E = worldHeight - 1;
+				if (W > worldHeight) W = 0;
 
-				if (N < 0) N = worldHeight;
-				if (S > worldHeight) S = 0;
+				if (N < -1) N = worldWidth - 1;
+				if (S > worldWidth) S = 0;
 
 				var myN = canWalkHere(x, N),
 				myS = canWalkHere(x, S),

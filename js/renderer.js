@@ -497,6 +497,7 @@ class pacmanRenderer
 			}
 		}
 	}
+
 /*
 ███╗   ███╗ ██████╗ ██╗   ██╗███████╗███╗   ███╗███████╗███╗   ██╗████████╗
 ████╗ ████║██╔═══██╗██║   ██║██╔════╝████╗ ████║██╔════╝████╗  ██║╚══██╔══╝
@@ -505,7 +506,8 @@ class pacmanRenderer
 ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
 ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
 */
-	renderMovement(x, y, dx, dy ,direction, id)
+
+	renderMovement(x, y, dx, dy ,direction, id, vulnerable, isDead)
 	{
 		var sprite = this.interactiveSprites[id];
 		var level = this.currentLevel;
@@ -532,14 +534,38 @@ class pacmanRenderer
 		}
 		else
 		{
+			console.log(vulnerable);
+			if (vulnerable > 0)
+			{
+				sprite.texture = sprite.enemyTextures.vulnerableSprites[0];
+				if((vulnerable < 10)&&(vulnerable % 2 == 0))
+				{
+					setSprite(sprite, sprite.enemyTextures.sprites, direction);	
+				}
+			}
+			else
+			{
+				if (isDead)
+				{
+					setSprite(sprite, sprite.enemyTextures.deadSprites, direction);
+				}
+				else
+				{
+					setSprite(sprite, sprite.enemyTextures.sprites, direction);
+				}
+			}	
+		}	
+
+		function setSprite(sprite, collection, direction)
+		{
 			switch (direction)
 			{
-				case 0: sprite.texture = sprite.enemyTextures.sprites[0]; break;
-				case 1: sprite.texture = sprite.enemyTextures.sprites[1]; break;
-				case 2: sprite.texture = sprite.enemyTextures.sprites[2]; break;
-				case 3: sprite.texture = sprite.enemyTextures.sprites[3]; break;
+				case 0: sprite.texture = collection[0]; break;
+				case 1: sprite.texture = collection[1]; break;
+				case 2: sprite.texture = collection[2]; break;
+				case 3: sprite.texture = collection[3]; break;
 			}
-		}	
+		}
 	}
 
 	//уничтожение спрайта (при "съедении")
@@ -547,6 +573,7 @@ class pacmanRenderer
 	{
 		this.spriteArray[x][y].destroy();	
 	}
+
 /*
  █████╗ ███╗   ██╗██╗███╗   ███╗    ██████╗██╗  ██╗ █████╗ ██████╗    
 ██╔══██╗████╗  ██║██║████╗ ████║   ██╔════╝██║  ██║██╔══██╗██╔══██╗   
@@ -555,6 +582,7 @@ class pacmanRenderer
 ██║  ██║██║ ╚████║██║██║ ╚═╝ ██║██╗╚██████╗██║  ██║██║  ██║██║  ██║██╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
 */
+
 	animateChar(oldx,oldy,dx,dy,sprite)
 	{
 		var newx = oldx + dx;
@@ -590,6 +618,7 @@ class pacmanRenderer
 	{
 		return this.gameCanvas.view;
 	}
+
 /*
 ██████╗  █████╗ ██╗   ██╗███████╗███████╗
 ██╔══██╗██╔══██╗██║   ██║██╔════╝██╔════╝
@@ -598,6 +627,7 @@ class pacmanRenderer
 ██║     ██║  ██║╚██████╔╝███████║███████╗
 ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝
 */
+
 	pause()
 	{
 		if (this.pauseBox.alpha == 0)

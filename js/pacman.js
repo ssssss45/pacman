@@ -16,6 +16,8 @@ class pacman
 
 		this.enemies = params.enemies;
 
+		this.ticksVulnerable = params.ticksVulnerable;
+
 		this.pauseButton = document.createElement("button");
 		var pausePlace = params.width - 45;
 		this.pauseButton.innerHTML="Pause";
@@ -230,6 +232,7 @@ class pacman
 								"eatsDots" : enem.eatsDots,
 								"killsPlayer" : enem.killsPlayer,
 								"moveType" : enem.moveType,
+								"canBeVulnerable" : enem.canBeVulnerable,
 								"id" : item
 								});
 						this.enemyArray.push(currentEnemy);
@@ -289,17 +292,77 @@ class pacman
 		}
 
 		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
+		{
+			var score = (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
+			//если съеден озверин, то всем противникам которые могут быть уязвимы и живы выдается уязвимость
+			if (score == -1)
 			{
-				this.score = this.score + (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
-				this.moveTimer = -40;
 				for (var i = 0; i < this.enemyArray.length; i++)
 				{	
-					var currentEnemy = this.enemyArray[i];
-					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
-					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
-					if ((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y)&&(currentEnemy.killsPlayer==true)) {this.playerDeath()}
+					var current = this.enemyArray[i];
+					if ((current.canBeVulnerable)&&(!current.character.isDead))
+					{
+						current.character.vulnerable = this.ticksVulnerable + 1;
+					}
 				}
 			}
+			//если съедена точка то начисляются очки
+			else
+			{
+				this.score += score;
+			}
+			this.moveTimer = -40;
+
+
+			for (var i = 0; i < this.enemyArray.length; i++)
+			{	
+				var currentEnemy = this.enemyArray[i];
+
+				var pastX = currentEnemy.character.x;
+				var pastY = currentEnemy.character.y;
+
+
+				if (currentEnemy.character.vulnerable > 0) 
+				{
+					currentEnemy.character.vulnerable--;
+				}
+
+				//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
+				if ((currentEnemy.character.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
+				{
+					currentEnemy.character.isDead = false;
+				}
+					
+				if (!currentEnemy.character.isDead)
+				{
+					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
+				}
+				else
+				{
+					currentEnemy.deadMove(this.currentLevel, currentEnemy.character.originX, currentEnemy.character.originY);
+				}
+				
+				//проверка на столкновение игрока и противника	
+				if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
+				{
+					//если противник уязвим то он погибает
+					if (currentEnemy.character.vulnerable > 0) 
+					{
+						currentEnemy.character.vulnerable = 0;
+						currentEnemy.character.isDead = true;
+						currentEnemy.clearData();
+					}
+					//если нет, противник может есть игрока и жив, то погибает игрок
+					else
+					{
+						if((currentEnemy.killsPlayer == true) && (!currentEnemy.character.isDead))
+						{
+							this.playerDeath()	
+						}
+					}
+				}
+			}
+		}
 
 		this.moveTimer = this.moveTimer + 40;
 		if (oldscore != this.score)
