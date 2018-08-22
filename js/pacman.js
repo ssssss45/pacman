@@ -2,6 +2,7 @@ class pacman
 {
 	constructor(params)
 	{
+		this.topPlayers = localStorage.topPlayers;
 		//уровни
 		this.levels = params.levels;
 		//DOM контейнер для генерации игры
@@ -19,6 +20,18 @@ class pacman
 		this.ticksVulnerable = params.ticksVulnerable;
 
 		this.outOfCagePoint = {};
+
+		var recordInputPlace = params.hight + 50;
+		this.recordInput = document.createElement("input");
+		this.recordInput.setAttribute("style","position:absolute; top:" + recordInputPlace + "px; width:40px" );
+		this.recordInput.setAttribute("maxlength", 3);
+
+		this.recordButton = document.createElement("button");
+		this.recordButton.innerHTML="Enter name";
+		this.recordButton.setAttribute("style","position:absolute; top:" + recordInputPlace + "px; left: 50px");
+		this.recordButton.setAttribute("onClick","pacmanGame.addRecord()");
+		this.container.appendChild(this.recordButton);
+		this.container.appendChild(this.recordInput);
 
 		this.pauseButton = document.createElement("button");
 		var pausePlace = params.width - 45;
@@ -237,6 +250,7 @@ class pacman
 								"canBeVulnerable" : enem.canBeVulnerable,
 								"delay" : enem.delay,
 								"respawnDelay" : enem.respawnDelay,
+								"scoreForDeath" : enem.scoreForDeath,
 								"id" : item
 								});
 						this.enemyArray.push(currentEnemy);
@@ -352,6 +366,7 @@ class pacman
 						
 					if (!currentEnemy.isDead)
 					{
+						//проверка на то чт опротивник вышел из клеткию если нет то выходит используя алгоритм A*
 						if (!currentEnemy.outOfCage)
 						{
 							if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
@@ -365,7 +380,7 @@ class pacman
 						}
 						else
 						{
-						this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
+							this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
 						}
 					}
 					else
@@ -381,6 +396,7 @@ class pacman
 						{
 							currentEnemy.vulnerable = 0;
 							currentEnemy.isDead = true;
+							this.score +=currentEnemy.scoreForDeath;
 							currentEnemy.outOfCage = false;
 							currentEnemy.clearData();
 						}
@@ -408,6 +424,30 @@ class pacman
 				this.stateMachine.setLevelClearScreen();
 			}
 		}	
+	}
+/*
+██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔══██╗██╔════╝
+██████╔╝█████╗  ██║     ██║   ██║██████╔╝██║  ██║███████╗
+██╔══██╗██╔══╝  ██║     ██║   ██║██╔══██╗██║  ██║╚════██║
+██║  ██║███████╗╚██████╗╚██████╔╝██║  ██║██████╔╝███████║
+╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝
+
+*/
+	addrecord()
+	{
+		if (this.topPlayers == undefined)
+		{
+			this.topPlayers = [];
+		}
+		//поиск меньшего рекорда в массиве
+		for (var i = 0; i < this.topPlayers.length; i++)
+		{
+
+		}
+		//если меньший рекорд не найден смотрим длинну массива - если он меньше пяти, то дописываем наш рекорд в конец
+
+
 	}
 
 /*

@@ -48,6 +48,7 @@ class enemy
 		}
 		this.deadMove = this.aStar;
 		this.outOfCage = false;
+		this.scoreForDeath = params.scoreForDeath;
 
 		this.boundFollow = this.followIfSeen.bind(this);
 	}

@@ -539,7 +539,7 @@ class pacmanRenderer
 				sprite.texture = sprite.enemyTextures.vulnerableSprites[0];
 				if((vulnerable < 10)&&(vulnerable % 2 == 0))
 				{
-					setSprite(sprite, sprite.enemyTextures.sprites, direction);	
+					sprite.texture = sprite.enemyTextures.vulnerableSprites[1];
 				}
 			}
 			else

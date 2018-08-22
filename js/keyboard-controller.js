@@ -82,7 +82,7 @@ class keyboardController
 //Создание события на нажатие клавиши
 	createControlsActivateEvent(action){
 		var keyCode=action.keyCode;
-		action.preventDefault();
+		//action.preventDefault();
 		this.pressedKeys[keyCode]=true;
 		if ((this.enabled)&&(this.keys[keyCode]!=undefined)){
 			var elem=this.getElement();
@@ -138,7 +138,7 @@ class keyboardController
 		{
 			this.currentTouchX=event.pageX;
 			this.currentTouchY=event.pageY;
-			event.preventDefault();
+			//event.preventDefault();
 		}
 
 	}
