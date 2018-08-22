@@ -18,13 +18,13 @@ class pacmanRenderer
 		this.lifemax = params.lifeMax;
 		this.gameWidth = params.width;
 		this.gameHight = params.hight;
+		this.bottomContainerHight = params.bottomContainerHight;
 		this.playerSpritesLocations = params.playerSpritesLocations;
 		this.playerDeathSpritesLocations = params.playerDeathSpritesLocations;
 		this.container = document.getElementById(params.container);
 
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
-		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight});
-		this.gameCanvas.view.setAttribute("style","position:absolute; top:30px");
+		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight + this.bottomContainerHight});
 		this.container.appendChild(this.gameCanvas.view);
 
 		this.playerTextures = [];
@@ -708,7 +708,6 @@ class pacmanRenderer
 
 	handleEnterName(event)
 	{
-		console.log(event);
 		this.scoresScreenText.alpha = 1;
 		this.scoresScreenText.text = "CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: "+event.detail.score+"\nEnter your name";
 		this.pauseBox.alpha = 0.5;

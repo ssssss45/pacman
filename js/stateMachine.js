@@ -23,7 +23,10 @@ states:
 
 	setIdle()
 	{
-		this.state = 1;
+		if (this.state == 3)
+		{
+			this.state = 1;
+		}
 	}
 
 	setPlaying()
