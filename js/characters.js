@@ -37,7 +37,6 @@ class character
 				}
 				else
 				{
-					console.log(outOfCage);
 					if (!outOfCage)
 					{
 						return level[dx][dy] != 1;	

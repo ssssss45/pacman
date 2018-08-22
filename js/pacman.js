@@ -235,6 +235,8 @@ class pacman
 								"killsPlayer" : enem.killsPlayer,
 								"moveType" : enem.moveType,
 								"canBeVulnerable" : enem.canBeVulnerable,
+								"delay" : enem.delay,
+								"respawnDelay" : enem.respawnDelay,
 								"id" : item
 								});
 						this.enemyArray.push(currentEnemy);
@@ -330,55 +332,62 @@ class pacman
 				var pastX = currentEnemy.character.x;
 				var pastY = currentEnemy.character.y;
 
-
-				if (currentEnemy.vulnerable > 0) 
+				if(currentEnemy.delay > 0)
 				{
-					currentEnemy.vulnerable--;
-				}
-
-				//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
-				if ((currentEnemy.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
-				{
-					currentEnemy.isDead = false;
-				}
-					
-				if (!currentEnemy.isDead)
-				{
-					if (!currentEnemy.outOfCage)
-					{
-						if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
-						{
-							currentEnemy.outOfCage = true;
-						}
-						currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);		
-					}
-					else
-					{
-					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
-					}
+					currentEnemy.delay --;
 				}
 				else
 				{
-					currentEnemy.deadMove(this.currentLevel, currentEnemy.character.originX, currentEnemy.character.originY);
-				}
-				
-				//проверка на столкновение игрока и противника	
-				if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
-				{
-					//если противник уязвим то он погибает
 					if (currentEnemy.vulnerable > 0) 
 					{
-						currentEnemy.vulnerable = 0;
-						currentEnemy.isDead = true;
-						currentEnemy.outOfCage = false;
-						currentEnemy.clearData();
+						currentEnemy.vulnerable--;
 					}
-					//если нет, противник может есть игрока и жив, то погибает игрок
+
+					//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
+					if ((currentEnemy.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
+					{
+						currentEnemy.isDead = false;
+						currentEnemy.delay = currentEnemy.respawnDelay;
+					}
+						
+					if (!currentEnemy.isDead)
+					{
+						if (!currentEnemy.outOfCage)
+						{
+							if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
+							{
+								currentEnemy.outOfCage = true;
+							}
+							currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);		
+						}
+						else
+						{
+						this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
+						}
+					}
 					else
 					{
-						if((currentEnemy.killsPlayer == true) && (!currentEnemy.isDead))
+						currentEnemy.deadMove(this.currentLevel, currentEnemy.character.originX, currentEnemy.character.originY);
+					}
+					
+					//проверка на столкновение игрока и противника	
+					if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
+					{
+						//если противник уязвим то он погибает
+						if (currentEnemy.vulnerable > 0) 
 						{
-							this.playerDeath()	
+							currentEnemy.vulnerable = 0;
+							currentEnemy.isDead = true;
+							currentEnemy.outOfCage = false;
+							currentEnemy.clearData();
+						}
+						//если нет, противник может есть игрока и жив, то погибает игрок
+						else
+						{
+							if((currentEnemy.killsPlayer == true) && (!currentEnemy.isDead))
+							{
+								this.playerDeath()	
+							}
 						}
 					}
 				}

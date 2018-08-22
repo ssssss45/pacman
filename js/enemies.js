@@ -21,7 +21,7 @@ class enemy
 						});
 		this.speed = params.speed||1;
 		this.killsPlayer = params.killsPlayer;
-		this.delay = params.delay||250;
+		this.delay = params.delay||0;
 		this.active = false;
 		this.canBeVulnerable = params.canBeVulnerable;
 		this.isDead = 0;
@@ -33,6 +33,7 @@ class enemy
 
 		this.vulnerable = 0;
 		this.isDead = false;
+		this.respawnDelay = params.respawnDelay||0;
 
 		this.lastPlayerX;
 		this.lastPlayerY;
