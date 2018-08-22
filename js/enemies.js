@@ -40,12 +40,15 @@ class enemy
 		switch (params.moveType)
 		{
 			case 0: this.move = this.randomMovement; break;
-			case 1: this.move = this.followIfSeen; break;
+			case 1: this.move = this.ifSeenRandom; break;
 			case 2: this.move = this.aStar; break;
 			case 3: this.move = this.randomSlider; break;
+			case 4: this.move = this.ifSeenSlider; break;
 		}
 		this.deadMove = this.aStar;
 		this.outOfCage = false;
+
+		this.boundFollow = this.followIfSeen.bind(this);
 	}
 /*
 ██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
@@ -83,6 +86,7 @@ class enemy
 			}
 		}
 	}
+
 /*
 ██╗███████╗    ███████╗███████╗███████╗███╗   ██╗
 ██║██╔════╝    ██╔════╝██╔════╝██╔════╝████╗  ██║
@@ -91,7 +95,18 @@ class enemy
 ██║██║         ███████║███████╗███████╗██║ ╚████║
 ╚═╝╚═╝         ╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝
 */
-	followIfSeen(level, playerX, playerY)
+
+	ifSeenRandom(level, playerX, playerY)
+	{
+		return (this.boundFollow(level, playerX, playerY, this.randomMovement.bind(this)));
+	}
+
+	ifSeenSlider(level, playerX, playerY)
+	{
+		return (this.boundFollow(level, playerX, playerY, this.randomSlider.bind(this)));
+	}
+
+	followIfSeen(level, playerX, playerY, func)
 	{
 		var direction = -1;
 		if ((this.character.x == this.lastPlayerX)&&(this.character.y == this.lastPlayerY))
@@ -122,7 +137,7 @@ class enemy
 
 		if(this.lastPlayerX == undefined)
 		{
-			return this.randomMovement(level);
+			return func(level);
 		}
 		else
 		{
@@ -374,7 +389,7 @@ class enemy
 ██╔══██╗       ╚════██║██║     ██║██║  ██║██╔══╝  ██╔══██╗
 ██║  ██║██╗    ███████║███████╗██║██████╔╝███████╗██║  ██║
 ╚═╝  ╚═╝╚═╝    ╚══════╝╚══════╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
-                                                          
+
 */
 	randomSlider(level)
 	{
