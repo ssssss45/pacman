@@ -358,7 +358,10 @@ class pacman
 							{
 								currentEnemy.outOfCage = true;
 							}
-							currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);		
+							else
+							{
+								currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);			
+							}
 						}
 						else
 						{

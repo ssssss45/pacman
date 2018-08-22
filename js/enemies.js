@@ -42,6 +42,7 @@ class enemy
 			case 0: this.move = this.randomMovement; break;
 			case 1: this.move = this.followIfSeen; break;
 			case 2: this.move = this.aStar; break;
+			case 3: this.move = this.randomSlider; break;
 		}
 		this.deadMove = this.aStar;
 		this.outOfCage = false;
@@ -65,9 +66,11 @@ class enemy
 		while (!flag)
 		{
 			var dir = this.getDxDyFromDirection(direction);
-			if(level[y + dir.dy][x + dir.dx] != 1)
+			var cell = level[y + dir.dy][x + dir.dx];
+			if((cell != 1) && (cell != 4) && (cell != 5))
 			{
 				flag = true;
+				this.direction = direction;
 				return this.character.move(dir.dx,dir.dy,direction,level,this.isDead,this.vulnerable, this.outOfCage);
 			}
 			else
@@ -155,7 +158,7 @@ class enemy
 			var width = level[0].length;
 			var hight = level.length;
 			var cycled = 0;
-(i > -1) && (j > -1) && (i <= width) && (j <= hight)
+
 			while (cycled<2)
 			{
 				if ((i == playerX) && (j == playerY))
@@ -202,10 +205,9 @@ class enemy
 			var dx = path[0][1] - this.character.x;
 			var dy = path[0][0] - this.character.y;		
 		}
-		
-		var direction = this.getDirectionFromDxDy(dx,dy);
+		this.character.direction = this.getDirectionFromDxDy(dx,dy);
 
-		return this.character.move(dx, dy, direction, level,this.isDead,this.vulnerable, this.outOfCage);
+		return this.character.move(dx, dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
 
 		function findPath(world, pathStart, pathEnd)
 		{
@@ -363,6 +365,32 @@ class enemy
 				return result;
 			}
 			return calculatePath();
+		}
+	}
+/*
+██████╗        ███████╗██╗     ██╗██████╗ ███████╗██████╗ 
+██╔══██╗       ██╔════╝██║     ██║██╔══██╗██╔════╝██╔══██╗
+██████╔╝       ███████╗██║     ██║██║  ██║█████╗  ██████╔╝
+██╔══██╗       ╚════██║██║     ██║██║  ██║██╔══╝  ██╔══██╗
+██║  ██║██╗    ███████║███████╗██║██████╔╝███████╗██║  ██║
+╚═╝  ╚═╝╚═╝    ╚══════╝╚══════╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+                                                          
+*/
+	randomSlider(level)
+	{
+		while (true)
+		{
+			var x = this.character.x;
+			var y = this.character.y;
+
+			var dir = this.getDxDyFromDirection(this.character.direction)
+			console.log(this.character.direction);
+			var cell = level[y + dir.dy][x + dir.dx];
+			if((cell != 1) && (cell != 4) && (cell != 5))
+			{
+				return this.character.move(dir.dx, dir.dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+			}
+			this.character.direction = this.getRandomInt(0,3);
 		}
 	}
 /*

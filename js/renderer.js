@@ -534,7 +534,6 @@ class pacmanRenderer
 		}
 		else
 		{
-			console.log(vulnerable);
 			if (vulnerable > 0)
 			{
 				sprite.texture = sprite.enemyTextures.vulnerableSprites[0];
