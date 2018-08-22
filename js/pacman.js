@@ -75,7 +75,7 @@ class pacman
 		addKeyToController("right",[39],this.keycon);
 		addKeyToController("up",[38],this.keycon);
 		addKeyToController("down",[40],this.keycon);
-		addKeyToController("x",[88],this.keycon);
+		addKeyToController("d",[88],this.keycon);
 
 		function addKeyToController(name,keys,keycon)
 		{
@@ -140,7 +140,7 @@ class pacman
 			case "down": this.downActive = false; break;
 			case "up": this.upActive = false; break;
 			case "x": this.currentLevelFood = 1; break;
-			case "d": this.playerDeath(); break;
+			case "d": console.log("???"); this.playerDeath(); break;
 		}
 		
 	}
@@ -481,6 +481,10 @@ class pacman
 			var enemy = this.enemyArray[i]
 			enemy.character.x = enemy.character.originX;
 			enemy.character.y = enemy.character.originY;
+			enemy.isDead = false;
+			enemy.vulnerable = 0;
+			enemy.outOfCage = false;
+			enemy.delay = enemy.defaultDelay;
 			enemy.clearData();
 		}
 		this.player.x = this.player.originX;

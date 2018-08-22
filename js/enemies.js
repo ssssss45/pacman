@@ -21,7 +21,8 @@ class enemy
 						});
 		this.speed = params.speed||1;
 		this.killsPlayer = params.killsPlayer;
-		this.delay = params.delay||0;
+		this.defaultDelay = params.delay||0;
+		this.delay = this.defaultDelay;
 		this.active = false;
 		this.canBeVulnerable = params.canBeVulnerable;
 		this.isDead = 0;
@@ -399,7 +400,6 @@ class enemy
 			var y = this.character.y;
 
 			var dir = this.getDxDyFromDirection(this.character.direction)
-			console.log(this.character.direction);
 			var cell = level[y + dir.dy][x + dir.dx];
 			if((cell != 1) && (cell != 4) && (cell != 5))
 			{
