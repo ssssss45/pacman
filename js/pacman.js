@@ -2,7 +2,11 @@ class pacman
 {
 	constructor(params)
 	{
-		this.topPlayers = localStorage.topPlayers;
+		if (localStorage.pacmanGameTopPlayers != undefined)
+		{
+			this.topPlayers = JSON.parse(localStorage.pacmanGameTopPlayers);	
+		}
+		
 		//уровни
 		this.levels = params.levels;
 		//DOM контейнер для генерации игры
@@ -25,11 +29,13 @@ class pacman
 		this.recordInput = document.createElement("input");
 		this.recordInput.setAttribute("style","position:absolute; top:" + recordInputPlace + "px; width:40px" );
 		this.recordInput.setAttribute("maxlength", 3);
+		this.recordInput.style.visibility = "hidden";
 
 		this.recordButton = document.createElement("button");
 		this.recordButton.innerHTML="Enter name";
 		this.recordButton.setAttribute("style","position:absolute; top:" + recordInputPlace + "px; left: 50px");
-		this.recordButton.setAttribute("onClick","pacmanGame.addRecord()");
+		this.recordButton.setAttribute("onClick","pacmanGame.addScore()");
+		this.recordButton.style.visibility = "hidden";
 		this.container.appendChild(this.recordButton);
 		this.container.appendChild(this.recordInput);
 
@@ -119,6 +125,7 @@ class pacman
 		document.addEventListener("Pacman: resetting", this.reset.bind(this));
 		document.addEventListener("Pacman: resetting finished", this.handleFinishedResetting.bind(this));
 		document.addEventListener("Pacman: level clear", this.handleLevelClear.bind(this));
+		document.addEventListener("Pacman: enter high score", this.handleEnterScore.bind(this));
 		document.addEventListener("visibilitychange", this.tabChanged.bind(this));
 	}
 /*
@@ -153,7 +160,7 @@ class pacman
 			case "down": this.downActive = false; break;
 			case "up": this.upActive = false; break;
 			case "x": this.currentLevelFood = 1; break;
-			case "d": console.log("???"); this.playerDeath(); break;
+			case "d": this.playerDeath(); break;
 		}
 		
 	}
@@ -432,22 +439,45 @@ class pacman
 ██╔══██╗██╔══╝  ██║     ██║   ██║██╔══██╗██║  ██║╚════██║
 ██║  ██║███████╗╚██████╗╚██████╔╝██║  ██║██████╔╝███████║
 ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝
-
 */
-	addrecord()
+	addScore()
 	{
+		var record = {
+			"name" : this.recordInput.value,
+			"score" : this.score
+		}
+		
 		if (this.topPlayers == undefined)
 		{
 			this.topPlayers = [];
 		}
-		//поиск меньшего рекорда в массиве
-		for (var i = 0; i < this.topPlayers.length; i++)
-		{
 
+		var scoreToReplace = -1;
+		//поиск меньшего рекорда в массиве
+		for (var i = this.topPlayers.length - 1; i > -1; i--)
+		{
+			if (this.topPlayers[i].score < this.score)
+			{
+				scoreToReplace = i;
+			}
 		}
 		//если меньший рекорд не найден смотрим длинну массива - если он меньше пяти, то дописываем наш рекорд в конец
+		if ((scoreToReplace == -1) && (this.topPlayers.length < 5))
+		{
+			this.topPlayers.push(record);
+		}
 
-
+		//если рекорд найден то вставляем его в массив, а потом удаляем пятый элемент
+		if (scoreToReplace != -1)
+		{
+			this.topPlayers.splice(scoreToReplace,0,record);
+			this.topPlayers.splice(5,1);
+		}
+		localStorage.pacmanGameTopPlayers = JSON.stringify(this.topPlayers);
+		console.log(localStorage.pacmanGameTopPlayers);
+		this.recordInput.style.visibility = "hidden";
+		this.recordButton.style.visibility = "hidden";
+		this.stateMachine.setGameOver(this.topPlayers);
 	}
 
 /*
@@ -495,7 +525,22 @@ class pacman
 
 		if (this.extraLives == -1)
 		{
-			this.stateMachine.setGameOver(this.score);
+			var highScore = this.topPlayers.length<5;
+			for (var i = 0; i < this.topPlayers.length; i++)
+			{
+				if (this.topPlayers[i].score < this.score)
+				{
+					highScore = true;
+				}
+			}
+			if (highScore)
+			{
+				this.stateMachine.setEnterHighScore(this.score)
+			}
+			else
+			{
+				this.stateMachine.setGameOver(this.topPlayers);	
+			}
 		}
 		else
 		{
@@ -547,5 +592,12 @@ class pacman
 	{
 		clearInterval(this.currentGameInterval);
 		this.stateMachine.setReadyScreen();
+	}
+
+	handleEnterScore()
+	{
+		this.recordInput.value = "";
+		this.recordInput.style.visibility = "visible";
+		this.recordButton.style.visibility = "visible";
 	}
 }

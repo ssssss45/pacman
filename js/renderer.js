@@ -55,8 +55,8 @@ class pacmanRenderer
 		this.pauseText.pauseBox = true;
 
 		//надпись в случае конца игры
-		this.gameOverText = textGen("", this.gameWidth/10,0,this.gameHight/2-this.gameWidth/10,true);
-		this.gameOverScore = textGen("", this.gameWidth/10,0,this.gameHight/2,true);
+		this.gameOverText = textGen("", this.gameWidth/10,0,0,true);
+		this.gameOverScore = textGen("", this.gameWidth/10,0,this.gameHight/10,true);
 
 		//экран приветствия
 		this.welcomeText = textGen("PAC-MAN", this.gameWidth/10,this.gameWidth/4,this.gameHight/2-this.gameWidth/10,true);
@@ -76,6 +76,9 @@ class pacmanRenderer
 		//текст экрана готовности
 		this.readyScreenText = textGen("READY?", this.gameWidth/10,this.gameWidth/3,this.gameHight/2,true);
 
+		//текст экрана ввода рекордов
+		this.scoresScreenText = textGen("CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: ", this.gameWidth/10,0,0,true);
+
 		//функция генерации текстов
 		function textGen(text, fontSize, x, y, notDestroy)
 		{
@@ -84,7 +87,7 @@ class pacmanRenderer
 				"fontFamily" : 'Courier New', 
 				"fontSize": fontSize, 
 				"fill" : 0xFFFFFF, 
-				"align" : 'right',
+				"align" : 'left',
 				"dropShadow": true,
 				"dropShadowDistance": 10,
 				"dropShadowAlpha": 0.2,
@@ -130,6 +133,7 @@ class pacmanRenderer
 		document.addEventListener("Pacman: resetting", this.resetAfterDeath.bind(this));
 		document.addEventListener("Pacman: ready screen", this.readyScreen.bind(this));
 		document.addEventListener("Pacman: game start", this.removeReadyScreen.bind(this));
+		document.addEventListener("Pacman: enter high score", this.handleEnterName.bind(this));
 	}
 
 /*
@@ -415,6 +419,7 @@ class pacmanRenderer
 		initObjects(this.pauseText, 0, this);
 		initObjects(this.gameOverText, 0, this);
 		initObjects(this.gameOverScore, 0, this);
+		initObjects(this.scoresScreenText, 0, this);
 		initObjects(this.readyScreenText, 1, this);
 
 		function initObjects(obj, alpha, currThis)
@@ -686,11 +691,27 @@ class pacmanRenderer
 
 	gameOver(event)
 	{
-		this.gameOverText.text = "Game Over";
+		var topPlayers = event.detail.topPlayers;
+		var temp;
+		this.scoresScreenText.alpha = 0;
+		this.gameOverText.text = "Game Over\nTop scores:";
 		this.gameOverText.alpha = 1;
-		this.gameOverScore.text = "Your score: "+event.detail.score;
+		this.gameOverScore.text = "\n";
+		for (var i = 0; i < topPlayers.length; i++)
+		{
+			temp = i+1;
+			this.gameOverScore.text += temp+": "+topPlayers[i].name + " : " +topPlayers[i].score + "\n";
+		}
 		this.gameOverScore.alpha = 1;
 		this.pauseBox.alpha = 0.3;	
+	}
+
+	handleEnterName(event)
+	{
+		console.log(event);
+		this.scoresScreenText.alpha = 1;
+		this.scoresScreenText.text = "CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: "+event.detail.score+"\nEnter your name";
+		this.pauseBox.alpha = 0.5;
 	}
 
 	readyScreen()

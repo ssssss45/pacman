@@ -9,7 +9,6 @@ states:
 3 - pause
 4 - game over screen
 5 - high score entry
-6 - high score screen
 7 - level clear screen
 8 - player dead
 9 - resetting
@@ -56,23 +55,30 @@ states:
 		}
 	}
 
-	setGameOver(score)
+	setGameOver(topPlayers)
 	{
-		if (this.state == 2)
+		if ((this.state == 2) || (this.state == 5))
 		{
 			this.state = 4;
 			var event = new CustomEvent("Pacman: game over",{
+				detail: {topPlayers: topPlayers}
+			});
+			document.dispatchEvent(event);
+		}
+	}
+
+	setEnterHighScore(score)
+	{
+		if (this.state == 2)
+		{
+			this.state = 5;
+			var event = new CustomEvent("Pacman: enter high score",{
 				detail: {score: score}
 			});
 			document.dispatchEvent(event);
 		}
 	}
 
-	setEnterHighScore()
-	{}
-
-	setLookHighScore()
-	{}
 
 	setLevelClearScreen()
 	{
