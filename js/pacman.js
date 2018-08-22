@@ -302,7 +302,7 @@ class pacman
 					var current = this.enemyArray[i];
 					if ((current.canBeVulnerable)&&(!current.character.isDead))
 					{
-						current.character.vulnerable = this.ticksVulnerable + 1;
+						current.vulnerable = this.ticksVulnerable + 1;
 					}
 				}
 			}
@@ -322,18 +322,18 @@ class pacman
 				var pastY = currentEnemy.character.y;
 
 
-				if (currentEnemy.character.vulnerable > 0) 
+				if (currentEnemy.vulnerable > 0) 
 				{
-					currentEnemy.character.vulnerable--;
+					currentEnemy.vulnerable--;
 				}
 
 				//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
-				if ((currentEnemy.character.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
+				if ((currentEnemy.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
 				{
-					currentEnemy.character.isDead = false;
+					currentEnemy.isDead = false;
 				}
 					
-				if (!currentEnemy.character.isDead)
+				if (!currentEnemy.isDead)
 				{
 					this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
 				}
@@ -346,16 +346,16 @@ class pacman
 				if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
 				{
 					//если противник уязвим то он погибает
-					if (currentEnemy.character.vulnerable > 0) 
+					if (currentEnemy.vulnerable > 0) 
 					{
-						currentEnemy.character.vulnerable = 0;
-						currentEnemy.character.isDead = true;
+						currentEnemy.vulnerable = 0;
+						currentEnemy.isDead = true;
 						currentEnemy.clearData();
 					}
 					//если нет, противник может есть игрока и жив, то погибает игрок
 					else
 					{
-						if((currentEnemy.killsPlayer == true) && (!currentEnemy.character.isDead))
+						if((currentEnemy.killsPlayer == true) && (!currentEnemy.isDead))
 						{
 							this.playerDeath()	
 						}

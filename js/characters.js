@@ -22,11 +22,9 @@ class character
 		this.originX = params.x;
 		this.originY = params.y;
 		this.id = params.id;
-		this.vulnerable = 0;
-		this.isDead = false;
 	}
 
-	move (dx,dy,direction,level)
+	move (dx,dy,direction,level, isDead, vulnerable)
 	{
 		var score = 0;
 
@@ -70,7 +68,7 @@ class character
 		if((check(this.y+this.dy,this.x+this.dx,level,this.isPlayer))&&(this.direction!=-1))
 		{
 			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.isPlayer);
-			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, this.vulnerable, this.isDead);
+			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, vulnerable, isDead);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
 			if(this.x < 0){this.x = level[0].length - 1}

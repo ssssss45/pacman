@@ -31,16 +31,19 @@ class enemy
 		this.dx = this.character.dx;
 		this.dy = this.character.dy;
 
+		this.vulnerable = 0;
+		this.isDead = false;
+
 		this.lastPlayerX;
 		this.lastPlayerY;
 		switch (params.moveType)
 		{
-			case 0: this.move = this.randomMovement;break;
-			case 1: this.move = this.followIfSeen;break;
-			case 2: this.move = this.aStar;break;
+			case 0: this.move = this.randomMovement; break;
+			case 1: this.move = this.followIfSeen; break;
+			case 2: this.move = this.aStar; break;
 		}
 		this.deadMove = this.aStar;
-
+		this.outOfCage = false;
 	}
 /*
 ██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
@@ -64,7 +67,7 @@ class enemy
 			if(level[y + dir.dy][x + dir.dx] != 1)
 			{
 				flag = true;
-				return this.character.move(dir.dx,dir.dy,direction,level);
+				return this.character.move(dir.dx,dir.dy,direction,level,this.isDead,this.vulnerable);
 			}
 			else
 			{
@@ -119,7 +122,7 @@ class enemy
 		}
 		else
 		{
-			return this.character.move(this.dx, this.dy, this.direction, level);
+			return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable);
 		}
 
 		function checkAxis(dx,dy, dir1, dir2, currThis)
@@ -201,7 +204,7 @@ class enemy
 		
 		var direction = this.getDirectionFromDxDy(dx,dy);
 
-		return this.character.move(dx, dy, direction, level);
+		return this.character.move(dx, dy, direction, level,this.isDead,this.vulnerable);
 
 		function findPath(world, pathStart, pathEnd)
 		{
