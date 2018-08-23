@@ -58,6 +58,10 @@ class pacmanRenderer
 		this.gameOverText = textGen("", this.gameWidth/10,0,0,true);
 		this.gameOverScore = textGen("", this.gameWidth/10,0,this.gameHight/10,true);
 
+		//надпись загрузки
+		this.loadingText = textGen("Loading", this.gameWidth/10,this.gameWidth/4,this.gameHight/1.2,true);
+		this.gameCanvas.stage.addChild(this.loadingText);
+
 		//текст экрана приветствия
 		this.welcomeText = textGen("PAC-MAN", this.gameWidth/10,this.gameWidth/4,this.gameHight/2-this.gameWidth/10,true);
 		this.welcomeText.pauseBox = true;
@@ -104,10 +108,17 @@ class pacmanRenderer
 				"resources/sounds/dotEaten.wav",
 				"resources/sounds/button.wav",
 				"resources/sounds/idle.wav",
-				"resources/sounds/gameSong.wav"
+				"resources/sounds/gameSong.wav",
+				"resources/sounds/scores.wav",
+				"resources/sounds/walk.wav",
+				"resources/sounds/gameOver.wav",
+				"resources/sounds/ozv.wav",
+				"resources/sounds/enemyWalk.mp3",
+				"resources/sounds/eatEnemy.wav",
+				"resources/sounds/bonus.wav"
 				])
-			.load(this.generateLoadedEvent)
-
+			.load(this.generateLoadedEvent.bind(this))
+		this.scoreSpriteArray = [];
 		this.levels = params.levels;
 		this.boundDraw = this.draw.bind(this);
 		//массив спрайтов бонусов
@@ -281,7 +292,7 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
-		this.playSound("button");
+		this.playSound("button.wav");
 		if (this.gameSong != undefined)
 		{
 			this.gameSong.stop();
@@ -523,6 +534,7 @@ class pacmanRenderer
 
 		if (id == 6)
 		{	
+			this.playPlayerStep();
 			switch (direction)
 			{
 				case 0: sprite.rotation = Math.PI; break;
@@ -569,7 +581,7 @@ class pacmanRenderer
 	//уничтожение спрайта (при "съедении")
 	destroySprite(x,y)
 	{
-		this.playSound("dotEaten");
+		this.playDotEaten();
 		this.spriteArray[x][y].destroy();	
 	}
 
@@ -629,7 +641,7 @@ class pacmanRenderer
 
 	pause()
 	{
-		this.playSound("button");
+		this.playSound("button.wav");
 		if (this.pauseBox.alpha == 0)
 		{
 			this.pauseBox.alpha = 0.3;
@@ -666,7 +678,7 @@ class pacmanRenderer
 		{
 			if (i == 0)
 			{
-				this.playSound("death");
+				this.playSound("death.wav");
 			}
 			if (i<length)	
 			{
@@ -780,6 +792,38 @@ class pacmanRenderer
 			this.gameCanvas.stage.addChild(this.poly);
 		}
 	}
+/*
+███████╗███╗   ██╗███████╗███╗   ███╗       ███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔════╝████╗  ██║██╔════╝████╗ ████║       ██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+█████╗  ██╔██╗ ██║█████╗  ██╔████╔██║       ███████╗██║     ██║   ██║██████╔╝█████╗  
+██╔══╝  ██║╚██╗██║██╔══╝  ██║╚██╔╝██║       ╚════██║██║     ██║   ██║██╔══██╗██╔══╝  
+███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ███████║╚██████╗╚██████╔╝██║  ██║███████╗
+╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+*/
+	enemyEatenScore(number,x,y)
+	{
+		var score = new PIXI.Text(number,
+			{
+				"fontFamily" : 'Courier New', 
+				"fontSize": this.blockHight/1.5, 
+				"fill" : 0xFFD700, 
+				"align" : 'left',
+				"dropShadow": true,
+				"dropShadowDistance": 10,
+				"dropShadowAlpha": 0.2,
+			});
+		score.x = x*this.blockWidth;
+		score.y = y*this.blockHight;
+		this.gameCanvas.stage.addChild(score);
+		this.scoreSpriteArray.push(score);
+		setTimeout(this.removeScore.bind(this), 3000);
+	}
+
+	removeScore()
+	{
+		this.scoreSpriteArray[0].destroy();
+		this.scoreSpriteArray.shift();
+	}
 
 /*
 ██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
@@ -830,8 +874,9 @@ class pacmanRenderer
 
 	playSound(sound)
 	{
-		var sound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/"+sound+".wav"]);
+		var sound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/"+sound]);
 			sound.play();	
+		setTimeout(sound.close, 100);
 	}
 
 	playIdleSound()
@@ -850,11 +895,9 @@ class pacmanRenderer
 
 	switchGameSongSpeed(distance)
 	{
-		console.log(distance);
 		if (distance < 6)
 		{
 			this.gameSong.speed = 1.6 - distance/10;
-			console.log(1.6 - distance/10)	
 		}
 		else
 		{
@@ -862,9 +905,28 @@ class pacmanRenderer
 		}
 	}
 
+	playPlayerStep()
+	{
+		this.playerStep.play();
+	}
+
+	playDotEaten()
+	{
+		this.dotEaten.play();
+	}
+
+	playEatEnemy()
+	{
+		this.enemyEaten.play();
+	}
+
 	generateLoadedEvent()
 	{
+		this.playerStep = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/walk.wav"]);
+		this.dotEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/dotEaten.wav"]);
+		this.enemyEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/eatEnemy.wav"]);
 		var event = new CustomEvent("Pacman: loading finished");
+		this.loadingText.visible = false;
 		document.dispatchEvent(event);
 	}
 }

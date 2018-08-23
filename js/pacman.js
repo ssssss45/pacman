@@ -362,6 +362,7 @@ class pacman
 			else
 			{
 				this.score += score;
+				this.currentLevelFood -= score;
 			}
 			this.moveTimer = -40;
 
@@ -416,7 +417,8 @@ class pacman
 						}
 						else
 						{
-							this.currentLevelFood = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
+							 var result = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
+							 if (result == 1){this.currentLevelFood += result;}
 						}
 					}
 					else
@@ -431,7 +433,7 @@ class pacman
 						if (currentEnemy.vulnerable > 0) 
 						{
 							currentEnemy.vulnerable = 0;
-							currentEnemy.isDead = true;
+							currentEnemy.setDead();
 							this.score +=currentEnemy.scoreForDeath;
 							currentEnemy.outOfCage = false;
 							currentEnemy.clearData();
@@ -450,13 +452,10 @@ class pacman
 			}
 		}
 
-
-
 		this.moveTimer = this.moveTimer + 40;
 		if (oldscore != this.score)
 		{
 			this.scoreContainer.innerHTML="Score: "+this.score;
-			this.currentLevelFood--;
 			if (this.currentLevelFood == 0)
 			{
 				clearInterval(this.currentGameInterval);

@@ -25,7 +25,7 @@ class enemy
 		this.delay = this.defaultDelay;
 		this.active = false;
 		this.canBeVulnerable = params.canBeVulnerable;
-		this.isDead = 0;
+		this.isDead = false;
 		this.x = this.character.x;
 		this.y = this.character.y;
 		this.locationDistance = params.locationDistance;
@@ -68,6 +68,13 @@ class enemy
 		this.boundLocator = this.locator.bind(this);
 		this.boundIfSeenRandom = this.ifSeenRandom.bind(this);
 		this.boundIfSeenSlider = this.ifSeenSlider.bind(this);
+	}
+
+	setDead()
+	{
+		this.isDead = true;
+		this.character.renderer.playEatEnemy();
+		this.character.renderer.enemyEatenScore(this.scoreForDeath, this.character.x, this.character.y);
 	}
 
 	distanceToPlayer(playerX, playerY)
@@ -259,12 +266,12 @@ class enemy
 */
 	locatorRandom(level, playerX, playerY)
 	{
-		this.boundLocator(level, playerX, playerY, this.randomMovement.bind(this));
+		return this.boundLocator(level, playerX, playerY, this.randomMovement.bind(this));
 	}
 
 	locatorSlider(level, playerX, playerY)
 	{
-		this.boundLocator(level, playerX, playerY, this.randomSlider.bind(this));
+		return this.boundLocator(level, playerX, playerY, this.randomSlider.bind(this));
 	}
 
 	locator(level, playerX, playerY, func)
@@ -292,12 +299,12 @@ class enemy
 */
 	locateSeeRandom(level, playerX, playerY)
 	{
-		this.boundLocator(level, playerX, playerY, this.ifSeenRandom.bind(this));
+		return this.boundLocator(level, playerX, playerY, this.ifSeenRandom.bind(this));
 	}
 
 	locateSeeSlider(level, playerX, playerY)
 	{
-		this.boundLocator(level, playerX, playerY, this.ifSeenSlider.bind(this));
+		return this.boundLocator(level, playerX, playerY, this.ifSeenSlider.bind(this));
 	}
 
 
