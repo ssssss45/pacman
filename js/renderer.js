@@ -65,11 +65,10 @@ class pacmanRenderer
 
 		this.welcomePac.beginFill(0xFFFF00);
 		this.welcomePac.drawCircle(this.gameWidth/2,this.gameHight/3*2,this.gameHight/8);
+		this.welcomePac.notDestroy = true;
 
 		this.gameCanvas.stage.addChild(this.welcomePac);
 		this.gameCanvas.stage.addChild(this.welcomeText);
-
-		this.poly = new PIXI.Graphics();
 
 		this.halfPI = Math.PI/2;
 
@@ -98,30 +97,7 @@ class pacmanRenderer
 			return text;
 		}
 
-		//анимация экрана приветствия
-		this.idleAnimationInterval = setInterval(animateIdle.bind(this), 10);
-		var counter = 50;
-		var open = false;
-		var polyLength = this.gameWidth/2+this.gameHight/8;
-		function animateIdle()
-		{
-			if (open)
-			{
-				counter = counter + 2;
-				if (counter==50) open = false;
-			}
-			else
-			{
-				counter = counter - 2;
-				if (counter==0) open = true;
-			}	
-
-			this.poly.destroy();
-			this.poly = new PIXI.Graphics();
-			this.poly.beginFill(0x000000);
-			this.poly.drawPolygon([this.gameWidth/2, this.gameHight/3*2, polyLength, this.gameHight/3*2+counter, polyLength, this.gameHight/3*2-counter]);
-			this.gameCanvas.stage.addChild(this.poly);
-		}
+		this.startIdleAnimation();
 
 		this.levels=params.levels;
 		this.boundDraw= this.draw.bind(this);
@@ -296,6 +272,7 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
+		this.welcomePac.visible = false;
 		clearInterval(this.idleAnimationInterval);
 		this.welcomeText.visible = false;
 		this.interactiveSprites = [];
@@ -303,21 +280,21 @@ class pacmanRenderer
 		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.levelNumber]));
 		var level = this.currentLevel;
 
-		this.blockHight = this.gameHight/level.length;
-		this.blockWidth = this.gameWidth/level[0].length;
+		this.blockHight = this.gameHight / level.length;
+		this.blockWidth = this.gameWidth / level[0].length;
 
-		level[-1]=[];
-		level[level.length]=[];
+		level[-1] = [];
+		level[level.length] = [];
 		var sum;
-		for (var i=0; i<level.length;i++)
+		for (var i = 0; i < level.length; i++)
 		{
-			this.spriteArray[i]=[];
+			this.spriteArray[i] = [];
 			for (var j = 0; j < level[0].length; j++)
 			{
 				var item = level[i][j];
-				if (item==1)
+				if (item == 1)
 				{
-					sum=0;
+					sum = 0;
 					if (check(level,i-1,j)) sum = sum + this.bitMask[0][1];
 					if (check(level,i+1,j)) sum = sum + this.bitMask[2][1];
 					if (check(level,i,j-1)) sum = sum + this.bitMask[1][0];
@@ -728,6 +705,49 @@ class pacmanRenderer
 
 	idleHandler()
 	{
+		this.pauseBox.alpha = 0;
+		this.destroyLevel();
+		this.pauseText.visible = false;
+		this.welcomeText.visible = true;
+		this.welcomePac.visible = true;
+		//var boundStartIdleAnimation = this.startIdleAnimation.bind(this);
+		//boundStartIdleAnimation();
+		this.startIdleAnimation();
+	}
+
+	//анимация экрана приветствия
+	startIdleAnimation()
+	{
+		if (this.poly != undefined)
+		{
+			this.poly.destroy();
+		}
 		
+		this.poly = new PIXI.Graphics();
+		var counter = 50;
+		var open = false;
+		var polyLength = this.gameWidth/2+this.gameHight/8;
+		this.idleAnimationInterval = setInterval(animateIdle.bind(this), 10);
+
+		function animateIdle()
+		{
+			if (open)
+			{
+				counter = counter + 2;
+				if (counter == 50) open = false;
+			}
+			else
+			{
+				counter = counter - 2;
+				if (counter == 0) open = true;
+			}	
+
+			this.poly.destroy();
+			this.poly = new PIXI.Graphics();
+			this.poly.beginFill(0x000000);
+			this.poly.notDestroy = true;
+			this.poly.drawPolygon([this.gameWidth / 2, this.gameHight / 3 * 2, polyLength, this.gameHight / 3 * 2 + counter, polyLength, this.gameHight / 3 * 2 - counter]);
+			this.gameCanvas.stage.addChild(this.poly);
+		}
 	}
 }

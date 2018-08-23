@@ -40,6 +40,12 @@ class pacman
 		//кнопка паузы
 		this.pauseButton = elementGenerator("button","Pause", pausePlace, undefined, undefined, "hidden", "pacmanGame.pausePressed()", this.container);
 
+		//кнопка продолжения игры
+		this.continueButton = elementGenerator("button","Continue", recordInputPlace, recordInputPlaceHorizontal - 55, 150, "hidden", "pacmanGame.pausePressed()", this.container);
+
+		//кнопка возвращения в начальный экран
+		this.toIdleButton = elementGenerator("button","Return to welcome screen", recordInputPlace+20, recordInputPlaceHorizontal - 55, 150, "hidden", "pacmanGame.returnPressed()", this.container);
+
 		//контейнер с очками
 		this.scoreContainer = elementGenerator("div", "", scorePlace, undefined, undefined, "visible", undefined, this.container);
 		this.scoreContainer.style.color = "white";
@@ -138,12 +144,12 @@ class pacman
 		}
 	}
 /*
-██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-██║     ██║██╔════╝       ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-██║     ██║███████╗       ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-██║     ██║╚════██║       ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-███████╗██║███████║██╗    ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-╚══════╝╚═╝╚══════╝╚═╝    ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+██╗  ██╗███████╗██╗   ██╗     █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
+██║ ██╔╝██╔════╝╚██╗ ██╔╝    ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+█████╔╝ █████╗   ╚████╔╝     ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
+██╔═██╗ ██╔══╝    ╚██╔╝      ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
+██║  ██╗███████╗   ██║██╗    ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
+╚═╝  ╚═╝╚══════╝   ╚═╝╚═╝    ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
 */
 	activateListenerActions(event)
 	{
@@ -444,12 +450,12 @@ class pacman
 		}	
 	}
 /*
-██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ██████╗ ███████╗
-██╔══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔══██╗██╔════╝
-██████╔╝█████╗  ██║     ██║   ██║██████╔╝██║  ██║███████╗
-██╔══██╗██╔══╝  ██║     ██║   ██║██╔══██╗██║  ██║╚════██║
-██║  ██║███████╗╚██████╗╚██████╔╝██║  ██║██████╔╝███████║
-╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝
+████████╗ ██████╗ ██████╗     ███████╗ ██████╗ ██████╗ ██████╗ ███████╗███████╗
+╚══██╔══╝██╔═══██╗██╔══██╗    ██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝
+   ██║   ██║   ██║██████╔╝    ███████╗██║     ██║   ██║██████╔╝█████╗  ███████╗
+   ██║   ██║   ██║██╔═══╝     ╚════██║██║     ██║   ██║██╔══██╗██╔══╝  ╚════██║
+   ██║   ╚██████╔╝██║         ███████║╚██████╗╚██████╔╝██║  ██║███████╗███████║
+   ╚═╝    ╚═════╝ ╚═╝         ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 */
 	addScore()
 	{
@@ -519,10 +525,14 @@ class pacman
 	{
 		if (this.stateMachine.getState() == 3)
 		{
+			this.continueButton.style.visibility = "visible";
+			this.toIdleButton.style.visibility = "visible";
 			clearInterval(this.currentGameInterval);	
 		}
 		else
 		{
+			this.continueButton.style.visibility = "hidden";
+			this.toIdleButton.style.visibility = "hidden";
 			this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
 		}
 	}
@@ -530,6 +540,11 @@ class pacman
 	startPressed()
 	{
 		this.stateMachine.setNewGame();
+	}
+
+	returnPressed()
+	{
+		this.stateMachine.setIdle();
 	}
 
 	playerDeath()
@@ -626,5 +641,10 @@ class pacman
 	idleHandler()
 	{
 		this.startButton.style.visibility = "visible";
+		this.continueButton.style.visibility = "hidden";
+		this.toIdleButton.style.visibility = "hidden";
+		this.pauseButton.style.visibility = "hidden";
+		this.scoreContainer.innerHTML = "";
+		this.lifeContainer.innerHTML = "";
 	}
 }
