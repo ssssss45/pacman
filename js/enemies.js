@@ -69,6 +69,13 @@ class enemy
 		this.boundIfSeenRandom = this.ifSeenRandom.bind(this);
 		this.boundIfSeenSlider = this.ifSeenSlider.bind(this);
 	}
+
+	distanceToPlayer(playerX, playerY)
+	{
+		var x = Math.abs(playerX - this.character.x);
+		var y = Math.abs(playerY - this.character.y);
+		return Math.sqrt(x*x+y*y);
+	}
 /*
 ██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
 ██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔═══██╗████╗ ████║
@@ -153,8 +160,6 @@ class enemy
 
 	followIfSeen(level, playerX, playerY, func)
 	{
-		console.log(this.character.x == playerX);
-		console.log(playerX);
 		var direction = -1;
 		if ((this.character.x == this.lastPlayerX)&&(this.character.y == this.lastPlayerY))
 		{

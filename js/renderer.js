@@ -98,7 +98,15 @@ class pacmanRenderer
 			return text;
 		}
 
-		this.startIdleAnimation();
+		PIXI.loader
+			.add([
+				"resources/sounds/death.wav",
+				"resources/sounds/dotEaten.wav",
+				"resources/sounds/button.wav",
+				"resources/sounds/idle.wav",
+				"resources/sounds/gameSong.wav"
+				])
+			.load(this.generateLoadedEvent)
 
 		this.levels = params.levels;
 		this.boundDraw = this.draw.bind(this);
@@ -273,6 +281,13 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
+		this.playSound("button");
+		if (this.gameSong != undefined)
+		{
+			this.gameSong.stop();
+		}
+		this.startGameSong();
+		this.idleSound.stop();
 		this.welcomePac.visible = false;
 		clearInterval(this.idleAnimationInterval);
 		this.welcomeText.visible = false;
@@ -554,6 +569,7 @@ class pacmanRenderer
 	//уничтожение спрайта (при "съедении")
 	destroySprite(x,y)
 	{
+		this.playSound("dotEaten");
 		this.spriteArray[x][y].destroy();	
 	}
 
@@ -613,20 +629,31 @@ class pacmanRenderer
 
 	pause()
 	{
+		this.playSound("button");
 		if (this.pauseBox.alpha == 0)
 		{
 			this.pauseBox.alpha = 0.3;
 			this.pauseText.alpha = 1;
+			this.gameSong.pause();
 		}
 		else
 		{
+			this.gameSong.resume();
 			this.pauseBox.alpha = 0;
 			this.pauseText.alpha = 0;
 		}
 	}
-
+/*
+██████╗ ██╗            ██████╗ ███████╗ █████╗ ████████╗██╗  ██╗
+██╔══██╗██║            ██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██║  ██║
+██████╔╝██║            ██║  ██║█████╗  ███████║   ██║   ███████║
+██╔═══╝ ██║            ██║  ██║██╔══╝  ██╔══██║   ██║   ██╔══██║
+██║     ███████╗██╗    ██████╔╝███████╗██║  ██║   ██║   ██║  ██║
+╚═╝     ╚══════╝╚═╝    ╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+*/
 	animatePlayerDeath()
 	{
+		this.gameSong.stop();
 		var player = this.interactiveSprites[6];
 		player.rotation = 0;
 		player.textures = [this.playerDeathTextures[0]];
@@ -637,6 +664,10 @@ class pacmanRenderer
 		setTimeout(boundAnimate,500);
 		function animate()
 		{
+			if (i == 0)
+			{
+				this.playSound("death");
+			}
 			if (i<length)	
 			{
 				player.textures = [this.playerDeathTextures[i]];
@@ -651,6 +682,15 @@ class pacmanRenderer
 		}
 	}
 
+/*
+██████╗ ███████╗███████╗███████╗████████╗
+██╔══██╗██╔════╝██╔════╝██╔════╝╚══██╔══╝
+██████╔╝█████╗  ███████╗█████╗     ██║   
+██╔══██╗██╔══╝  ╚════██║██╔══╝     ██║   
+██║  ██║███████╗███████║███████╗   ██║   
+╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝  
+*/
+
 	resetAfterDeath()
 	{
 		for (var i = 0; i < this.interactiveSprites.length; i++)
@@ -664,9 +704,19 @@ class pacmanRenderer
 				player.y = player.originY;
 			}
 		}
+		this.gameSong.play();
 		var event = new CustomEvent("Pacman: resetting finished");
 		document.dispatchEvent(event);
 	}
+
+/*
+ ██████╗  █████╗ ███╗   ███╗███████╗     ██████╗ ██╗   ██╗███████╗██████╗ 
+██╔════╝ ██╔══██╗████╗ ████║██╔════╝    ██╔═══██╗██║   ██║██╔════╝██╔══██╗
+██║  ███╗███████║██╔████╔██║█████╗      ██║   ██║██║   ██║█████╗  ██████╔╝
+██║   ██║██╔══██║██║╚██╔╝██║██╔══╝      ██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗
+╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗    ╚██████╔╝ ╚████╔╝ ███████╗██║  ██║
+ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝     ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝
+*/
 
 	gameOver(event)
 	{
@@ -683,40 +733,21 @@ class pacmanRenderer
 		}
 		this.gameOverScore.alpha = 1;
 		this.pauseBox.alpha = 0.3;	
+		this.gameSong.play();
 	}
 
-	handleEnterName(event)
-	{
-		this.scoresScreenText.alpha = 1;
-		this.scoresScreenText.text = "CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: "+event.detail.score+"\nEnter your name";
-		this.pauseBox.alpha = 0.5;
-	}
+/*
+██╗    ██╗██╗     ███████╗ ██████╗ ██████╗ ███╗   ███╗███████╗
+██║    ██║██║     ██╔════╝██╔════╝██╔═══██╗████╗ ████║██╔════╝
+██║ █╗ ██║██║     █████╗  ██║     ██║   ██║██╔████╔██║█████╗  
+██║███╗██║██║     ██╔══╝  ██║     ██║   ██║██║╚██╔╝██║██╔══╝  
+╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗
+ ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝
+*/
 
-	readyScreen()
-	{
-		this.pauseBox.alpha = 0.5;
-		this.readyScreenText.alpha = 1;
-	}
-
-	removeReadyScreen()
-	{
-		this.readyScreenText.alpha = 0;
-		this.pauseBox.alpha = 0;	
-	}
-
-	idleHandler()
-	{
-		this.pauseBox.alpha = 0;
-		this.destroyLevel();
-		this.pauseText.visible = false;
-		this.welcomeText.visible = true;
-		this.welcomePac.visible = true;
-		this.startIdleAnimation();
-	}
-
-	//анимация экрана приветствия
 	startIdleAnimation()
 	{
+		this.playIdleSound();
 		if (this.poly != undefined)
 		{
 			this.poly.destroy();
@@ -748,5 +779,92 @@ class pacmanRenderer
 			this.poly.drawPolygon([this.gameWidth / 2, this.gameHight / 3 * 2, polyLength, this.gameHight / 3 * 2 + counter, polyLength, this.gameHight / 3 * 2 - counter]);
 			this.gameCanvas.stage.addChild(this.poly);
 		}
+	}
+
+/*
+██╗  ██╗ █████╗ ███╗   ██╗██████╗ ██╗     ███████╗██████╗ ███████╗
+██║  ██║██╔══██╗████╗  ██║██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝
+███████║███████║██╔██╗ ██║██║  ██║██║     █████╗  ██████╔╝███████╗
+██╔══██║██╔══██║██║╚██╗██║██║  ██║██║     ██╔══╝  ██╔══██╗╚════██║
+██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
+*/	
+
+	handleEnterName(event)
+	{
+		this.scoresScreenText.alpha = 1;
+		this.scoresScreenText.text = "CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: "+event.detail.score+"\nEnter your name";
+		this.pauseBox.alpha = 0.5;
+	}
+
+	readyScreen()
+	{
+		this.pauseBox.alpha = 0.5;
+		this.readyScreenText.alpha = 1;
+	}
+
+	removeReadyScreen()
+	{
+		this.readyScreenText.alpha = 0;
+		this.pauseBox.alpha = 0;	
+	}
+
+	idleHandler()
+	{
+		this.pauseBox.alpha = 0;
+		this.destroyLevel();
+		this.pauseText.alpha = 0;
+		this.welcomeText.visible = true;
+		this.welcomePac.visible = true;
+		this.startIdleAnimation();
+	}
+
+/*
+██████╗ ██╗      █████╗ ██╗   ██╗    ███████╗ ██████╗ ██╗   ██╗███╗   ██╗██████╗ 
+██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔═══██╗██║   ██║████╗  ██║██╔══██╗
+██████╔╝██║     ███████║ ╚████╔╝     ███████╗██║   ██║██║   ██║██╔██╗ ██║██║  ██║
+██╔═══╝ ██║     ██╔══██║  ╚██╔╝      ╚════██║██║   ██║██║   ██║██║╚██╗██║██║  ██║
+██║     ███████╗██║  ██║   ██║       ███████║╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝
+╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝       ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
+*/
+
+	playSound(sound)
+	{
+		var sound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/"+sound+".wav"]);
+			sound.play();	
+	}
+
+	playIdleSound()
+	{
+		this.idleSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/idle.wav"]);
+			this.idleSound.play();	
+	}
+
+	startGameSong()
+	{
+		this.gameSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameSong.wav"]);
+			this.gameSong.play();
+			this.gameSong.loop = true;	
+
+	}
+
+	switchGameSongSpeed(distance)
+	{
+		console.log(distance);
+		if (distance < 6)
+		{
+			this.gameSong.speed = 1.6 - distance/10;
+			console.log(1.6 - distance/10)	
+		}
+		else
+		{
+			this.gameSong.speed = 1;
+		}
+	}
+
+	generateLoadedEvent()
+	{
+		var event = new CustomEvent("Pacman: loading finished");
+		document.dispatchEvent(event);
 	}
 }

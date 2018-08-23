@@ -31,7 +31,7 @@ class pacman
 		this.recordInput.setAttribute("maxlength", 3);
 		
 		//кнопка начала игры
-		this.startButton = elementGenerator("button","New game", startPlace, startPlaceHorizontal, startPlaceHorizontal/2, "visible", "pacmanGame.startPressed()", this.container);
+		this.startButton = elementGenerator("button","New game", startPlace, startPlaceHorizontal, startPlaceHorizontal/2, "hidden", "pacmanGame.startPressed()", this.container);
 		
 		//кнопка ввода рекордов
 		recordInputPlace += 20;
@@ -119,6 +119,7 @@ class pacman
 		document.addEventListener("Pacman: game over", this.gameOverHandler.bind(this));
 		document.addEventListener("Pacman: idle", this.idleHandler.bind(this));
 		document.addEventListener("visibilitychange", this.tabChanged.bind(this));
+		document.addEventListener("Pacman: loading finished", this.loadingFinishedHandler.bind(this));
 
 		//функция передачи кнопок в контроллер
 		function addKeyToController(name,keys,keycon)
@@ -364,6 +365,7 @@ class pacman
 			}
 			this.moveTimer = -40;
 
+			var minDistanceToEnemy = this.currentLevel.length;
 
 			for (var i = 0; i < this.enemyArray.length; i++)
 			{	
@@ -395,6 +397,11 @@ class pacman
 					
 					if (!currentEnemy.isDead)
 					{
+						var currentEnemyDistance = currentEnemy.distanceToPlayer(this.player.x,this.player.y)
+						if (minDistanceToEnemy > currentEnemyDistance)
+						{
+							minDistanceToEnemy = currentEnemyDistance;
+						}
 						//проверка на то чт опротивник вышел из клетки. если нет то выходит используя алгоритм A*
 						if (!currentEnemy.outOfCage)
 						{
@@ -439,8 +446,11 @@ class pacman
 						}
 					}
 				}
+				this.renderer.switchGameSongSpeed(minDistanceToEnemy);
 			}
 		}
+
+
 
 		this.moveTimer = this.moveTimer + 40;
 		if (oldscore != this.score)
@@ -641,6 +651,12 @@ class pacman
 	gameOverHandler()
 	{
 		this.startButton.style.visibility = "visible";
+	}
+
+	loadingFinishedHandler()
+	{
+		this.stateMachine.setIdle();
+		this.startButton.visible = true;
 	}
 
 	idleHandler()

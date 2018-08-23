@@ -18,12 +18,12 @@ states:
 
 	constructor()
 	{
-		this.state = 1;
+		this.state = 0;
 	}
 
 	setIdle()
 	{
-		if (this.state == 3)
+		if ((this.state == 3) || (this.state == 0))
 		{
 			this.state = 1;
 			var event = new CustomEvent("Pacman: idle");
