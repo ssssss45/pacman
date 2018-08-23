@@ -155,6 +155,11 @@ class enemy
 ╚═╝╚═╝         ╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝
 */
 
+	escape(level, playerX, playerY)
+	{
+		return (this.boundFollow(level, playerX, playerY, this.randomSlider.bind(this),true));
+	}
+
 	ifSeenRandom(level, playerX, playerY)
 	{
 		return (this.boundFollow(level, playerX, playerY, this.randomMovement.bind(this)));
@@ -165,7 +170,7 @@ class enemy
 		return (this.boundFollow(level, playerX, playerY, this.randomSlider.bind(this)));
 	}
 
-	followIfSeen(level, playerX, playerY, func)
+	followIfSeen(level, playerX, playerY, func, escape)
 	{
 		var direction = -1;
 		if ((this.character.x == this.lastPlayerX)&&(this.character.y == this.lastPlayerY))
@@ -200,7 +205,50 @@ class enemy
 		}
 		else
 		{
-			return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+			if (escape == undefined)
+				{
+					return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				}
+				else
+				{
+					this.dx *= -1;
+					this.dy *= -1;
+
+					if(level[this.character.y + this.dy][this.character.x + this.dx] == 1)
+					{
+						this.lastPlayerX = undefined;
+						this.lastPlayerY = undefined;
+
+						if (this.character.y == playerY)
+						{
+							console.log("y");
+							this.dx = 0;
+							if (level[this.character.y + 1][this.character.x] == 1) 
+							{
+								this.dy = -1;
+							}
+							else
+							{
+								this.dy = 1;
+							}
+						}
+						else
+						{
+							this.dy = 0;
+							if (level[this.character.y][this.character.x + 1] == 1) 
+							{
+								this.dx = -1;
+							}
+							else
+							{
+								this.dx = 1;
+							}
+						}
+					}
+
+					this.direction = this.getDirectionFromDxDy(this.dx,this.dy)
+					return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				}
 		}
 
 		function checkAxis(dx,dy, dir1, dir2, currThis)
@@ -210,11 +258,11 @@ class enemy
 			if (result == undefined)
 			{
 				result = check (currThis.character.x, currThis.character.y, -dx, -dy, playerX, playerY, level);
-				if (result!=undefined)setParams(-dx, -dy, dir2, currThis);
+				if (result != undefined)setParams(-dx, -dy, dir2, currThis);
 			}
 			else
 			{
-				if (result!=undefined)setParams(dx, dy, dir1, currThis);
+				if (result != undefined)setParams(dx, dy, dir1, currThis);
 			}
 		}
 
@@ -504,6 +552,7 @@ class enemy
 
 	idle(level)
 	{
+		console.log("???");
 		if ((this.character.x == this.character.originX) &&  (this.character.y == this.character.originY))
 		{
 			var direction = this.getDirectionFromDxDy(this.idleDX, this.idleDY);

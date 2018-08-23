@@ -417,8 +417,16 @@ class pacman
 						}
 						else
 						{
-							 var result = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);
-							 if (result == 1){this.currentLevelFood += result;}
+							if (currentEnemy.vulnerable > 0)
+							{
+								var result = this.currentLevelFood - currentEnemy.escape(this.currentLevel, this.player.x, this.player.y);
+							}
+							else
+							{
+								var result = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
+							}
+							 
+							if (result == 1){this.currentLevelFood += result;}
 						}
 					}
 					else
