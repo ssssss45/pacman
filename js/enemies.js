@@ -56,6 +56,8 @@ class enemy
 			case 4: this.move = this.ifSeenSlider; break;
 			case 5: this.move = this.locatorRandom; break;
 			case 6: this.move = this.locatorSlider; break;
+			case 7: this.move = this.locateSeeRandom; break;
+			case 8: this.move = this.locateSeeSlider; break;
 		}
 
 		this.deadMove = this.aStar;
@@ -64,6 +66,8 @@ class enemy
 
 		this.boundFollow = this.followIfSeen.bind(this);
 		this.boundLocator = this.locator.bind(this);
+		this.boundIfSeenRandom = this.ifSeenRandom.bind(this);
+		this.boundIfSeenSlider = this.ifSeenSlider.bind(this);
 	}
 /*
 ██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
@@ -149,6 +153,8 @@ class enemy
 
 	followIfSeen(level, playerX, playerY, func)
 	{
+		console.log(this.character.x == playerX);
+		console.log(playerX);
 		var direction = -1;
 		if ((this.character.x == this.lastPlayerX)&&(this.character.y == this.lastPlayerY))
 		{
@@ -267,9 +273,28 @@ class enemy
 		}
 		else
 		{
-			func(level);	
+			func(level, playerX, playerY);	
 		}
 	}
+
+/*
+██╗      ██████╗  ██████╗ █████╗ ████████╗███████╗    ██╗███████╗███████╗███████╗
+██║     ██╔═══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝   ██╔╝██╔════╝██╔════╝██╔════╝
+██║     ██║   ██║██║     ███████║   ██║   █████╗    ██╔╝ ███████╗█████╗  █████╗  
+██║     ██║   ██║██║     ██╔══██║   ██║   ██╔══╝   ██╔╝  ╚════██║██╔══╝  ██╔══╝  
+███████╗╚██████╔╝╚██████╗██║  ██║   ██║   ███████╗██╔╝   ███████║███████╗███████╗
+╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝    ╚══════╝╚══════╝╚══════╝
+*/
+	locateSeeRandom(level, playerX, playerY)
+	{
+		this.boundLocator(level, playerX, playerY, this.ifSeenRandom.bind(this));
+	}
+
+	locateSeeSlider(level, playerX, playerY)
+	{
+		this.boundLocator(level, playerX, playerY, this.ifSeenSlider.bind(this));
+	}
+
 
 /*
  █████╗       
