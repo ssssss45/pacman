@@ -275,7 +275,8 @@ class pacman
 								"delay" : enem.delay,
 								"respawnDelay" : enem.respawnDelay,
 								"scoreForDeath" : enem.scoreForDeath,
-								"id" : item
+								"id" : item,
+								"idleMode" : enem.idleMode
 								});
 						this.enemyArray.push(currentEnemy);
 					}
@@ -370,9 +371,18 @@ class pacman
 				var pastX = currentEnemy.character.x;
 				var pastY = currentEnemy.character.y;
 
+				//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
+				if ((currentEnemy.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
+				{
+					currentEnemy.isDead = false;
+					currentEnemy.delay = currentEnemy.respawnDelay;
+				}
+
+				
 				if(currentEnemy.delay > 0)
 				{
 					currentEnemy.delay --;
+					currentEnemy.idle(this.currentLevel);
 				}
 				else
 				{
@@ -381,18 +391,13 @@ class pacman
 						currentEnemy.vulnerable--;
 					}
 
-					//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
-					if ((currentEnemy.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
-					{
-						currentEnemy.isDead = false;
-						currentEnemy.delay = currentEnemy.respawnDelay;
-					}
-						
+					
 					if (!currentEnemy.isDead)
 					{
 						//проверка на то чт опротивник вышел из клеткию если нет то выходит используя алгоритм A*
 						if (!currentEnemy.outOfCage)
 						{
+							console.log("comeout");
 							if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
 							{
 								currentEnemy.outOfCage = true;

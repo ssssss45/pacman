@@ -24,11 +24,11 @@ class character
 		this.id = params.id;
 	}
 
-	move (dx,dy,direction,level, isDead, vulnerable, outOfCage)
+	move (dx, dy, direction, level, isDead, vulnerable, outOfCage)
 	{
 		var score = 0;
 
-		function check(dx,dy,level, isPlayer, outOfCage)
+		function check(dx, dy, level, isPlayer, outOfCage)
 		{
 			if (level[dx] == undefined) return true;
 			if (isPlayer)
@@ -48,7 +48,7 @@ class character
 				}
 		}
 
-		function checkFood(dx,dy,level,renderer,isPlayer)
+		function checkFood(dx, dy, level, renderer, isPlayer)
 		{
 			if (level[dx] == undefined) return 0;
 			if (level[dx][dy] == 2) 
@@ -65,16 +65,16 @@ class character
 			}
 		}
 
-		if (check(this.y+dy,this.x+dx,level,this.isPlayer,outOfCage)) 
+		if (check(this.y + dy, this.x + dx, level, this.isPlayer, outOfCage)) 
 		{
 			this.dx = dx;
 			this.dy = dy;
 			this.direction = direction
 		}
 
-		if((check(this.y+this.dy,this.x+this.dx,level,this.isPlayer,outOfCage))&&(this.direction!=-1))
+		if((check(this.y + this.dy, this.x + this.dx, level, this.isPlayer, outOfCage)) && (this.direction != -1))
 		{
-			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx,level,this.renderer,this.isPlayer);
+			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx, level, this.renderer, this.isPlayer);
 			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, vulnerable, isDead);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
@@ -82,9 +82,9 @@ class character
 			else
 			if(this.x > level[0].length-1){this.x = 0}
 
-			if(this.y < 0){this.y = level.length-1}	
+			if(this.y < 0){this.y = level.length - 1}	
 			else
-			if(this.y > level.length -1){this.y = 0}			
+			if(this.y > level.length - 1){this.y = 0}			
 		}
 		return score;
 	}

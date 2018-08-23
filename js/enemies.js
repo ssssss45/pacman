@@ -38,6 +38,14 @@ class enemy
 
 		this.lastPlayerX;
 		this.lastPlayerY;
+
+		var idleDir = this.getDxDyFromDirection(params.idleMode);
+		if (idleDir != undefined)
+		{
+			this.idleDX = idleDir.dx;
+			this.idleDY = idleDir.dy;
+		}
+
 		switch (params.moveType)
 		{
 			case 0: this.move = this.randomMovement; break;
@@ -46,6 +54,7 @@ class enemy
 			case 3: this.move = this.randomSlider; break;
 			case 4: this.move = this.ifSeenSlider; break;
 		}
+
 		this.deadMove = this.aStar;
 		this.outOfCage = false;
 		this.scoreForDeath = params.scoreForDeath;
@@ -198,6 +207,24 @@ class enemy
 				j += dy;
 			}
 		}
+	}
+/*
+██╗      ██████╗  ██████╗ █████╗ ████████╗ ██████╗ ██████╗ 
+██║     ██╔═══██╗██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗
+██║     ██║   ██║██║     ███████║   ██║   ██║   ██║██████╔╝
+██║     ██║   ██║██║     ██╔══██║   ██║   ██║   ██║██╔══██╗
+███████╗╚██████╔╝╚██████╗██║  ██║   ██║   ╚██████╔╝██║  ██║
+╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
+*/
+	locatorRandom(level, playerX, playerY)
+	{
+		var x = Math.abs(playerX - this.character.x);
+		var y = Math.abs(playerY - this.character.y);
+	}
+
+	locatorSlider(level, playerX, playerY)
+	{
+		return (this.boundFollow(level, playerX, playerY, this.randomSlider.bind(this)));
 	}
 
 /*
@@ -407,6 +434,29 @@ class enemy
 				return this.character.move(dir.dx, dir.dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
 			}
 			this.character.direction = this.getRandomInt(0,3);
+		}
+	}
+
+/*
+██╗██████╗ ██╗     ███████╗
+██║██╔══██╗██║     ██╔════╝
+██║██║  ██║██║     █████╗  
+██║██║  ██║██║     ██╔══╝  
+██║██████╔╝███████╗███████╗
+╚═╝╚═════╝ ╚══════╝╚══════╝
+*/
+
+	idle(level)
+	{
+		if ((this.character.x == this.character.originX) &&  (this.character.y == this.character.originY))
+		{
+			var direction = this.getDirectionFromDxDy(this.idleDX, this.idleDY);
+			this.character.move(this.idleDX, this.idleDY, direction, level, false, false);
+		}
+		else
+		{
+			var direction = this.getDirectionFromDxDy(-this.idleDX, -this.idleDY);
+			this.character.move(-this.idleDX, -this.idleDY, direction, level, false, false);
 		}
 	}
 /*

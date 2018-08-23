@@ -58,11 +58,12 @@ class pacmanRenderer
 		this.gameOverText = textGen("", this.gameWidth/10,0,0,true);
 		this.gameOverScore = textGen("", this.gameWidth/10,0,this.gameHight/10,true);
 
-		//экран приветствия
+		//текст экрана приветствия
 		this.welcomeText = textGen("PAC-MAN", this.gameWidth/10,this.gameWidth/4,this.gameHight/2-this.gameWidth/10,true);
 		this.welcomeText.pauseBox = true;
-		this.welcomePac = new PIXI.Graphics();
 
+		//круг экрана приветствия
+		this.welcomePac = new PIXI.Graphics();
 		this.welcomePac.beginFill(0xFFFF00);
 		this.welcomePac.drawCircle(this.gameWidth/2,this.gameHight/3*2,this.gameHight/8);
 		this.welcomePac.notDestroy = true;
@@ -101,7 +102,7 @@ class pacmanRenderer
 
 		this.levels = params.levels;
 		this.boundDraw = this.draw.bind(this);
-
+		//массив спрайтов бонусов
 		this.spriteArray = [];
 		document.addEventListener("Pacman: game paused", this.pause.bind(this));
 		document.addEventListener("Pacman: game over", this.gameOver.bind(this));
