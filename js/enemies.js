@@ -28,6 +28,7 @@ class enemy
 		this.isDead = 0;
 		this.x = this.character.x;
 		this.y = this.character.y;
+		this.locationDistance = params.locationDistance;
 
 		this.dx = this.character.dx;
 		this.dy = this.character.dy;
@@ -53,6 +54,8 @@ class enemy
 			case 2: this.move = this.aStar; break;
 			case 3: this.move = this.randomSlider; break;
 			case 4: this.move = this.ifSeenSlider; break;
+			case 5: this.move = this.locatorRandom; break;
+			case 6: this.move = this.locatorSlider; break;
 		}
 
 		this.deadMove = this.aStar;
@@ -60,6 +63,7 @@ class enemy
 		this.scoreForDeath = params.scoreForDeath;
 
 		this.boundFollow = this.followIfSeen.bind(this);
+		this.boundLocator = this.locator.bind(this);
 	}
 /*
 ██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗
@@ -95,6 +99,32 @@ class enemy
 					direction = 0;
 				}
 			}
+		}
+	}
+
+/*
+██████╗        ███████╗██╗     ██╗██████╗ ███████╗██████╗ 
+██╔══██╗       ██╔════╝██║     ██║██╔══██╗██╔════╝██╔══██╗
+██████╔╝       ███████╗██║     ██║██║  ██║█████╗  ██████╔╝
+██╔══██╗       ╚════██║██║     ██║██║  ██║██╔══╝  ██╔══██╗
+██║  ██║██╗    ███████║███████╗██║██████╔╝███████╗██║  ██║
+╚═╝  ╚═╝╚═╝    ╚══════╝╚══════╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
+
+*/
+	randomSlider(level)
+	{
+		while (true)
+		{
+			var x = this.character.x;
+			var y = this.character.y;
+
+			var dir = this.getDxDyFromDirection(this.character.direction)
+			var cell = level[y + dir.dy][x + dir.dx];
+			if((cell != 1) && (cell != 4) && (cell != 5))
+			{
+				return this.character.move(dir.dx, dir.dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+			}
+			this.character.direction = this.getRandomInt(0,3);
 		}
 	}
 
@@ -218,13 +248,27 @@ class enemy
 */
 	locatorRandom(level, playerX, playerY)
 	{
-		var x = Math.abs(playerX - this.character.x);
-		var y = Math.abs(playerY - this.character.y);
+		this.boundLocator(level, playerX, playerY, this.randomMovement.bind(this));
 	}
 
 	locatorSlider(level, playerX, playerY)
 	{
-		return (this.boundFollow(level, playerX, playerY, this.randomSlider.bind(this)));
+		this.boundLocator(level, playerX, playerY, this.randomSlider.bind(this));
+	}
+
+	locator(level, playerX, playerY, func)
+	{
+		var x = Math.abs(playerX - this.character.x);
+		var y = Math.abs(playerY - this.character.y);
+		var distance = Math.sqrt(x*x+y*y);
+		if (distance < this.locationDistance)
+		{
+			this.aStar(level, playerX, playerY);
+		}
+		else
+		{
+			func(level);	
+		}
 	}
 
 /*
@@ -409,31 +453,6 @@ class enemy
 				return result;
 			}
 			return calculatePath();
-		}
-	}
-/*
-██████╗        ███████╗██╗     ██╗██████╗ ███████╗██████╗ 
-██╔══██╗       ██╔════╝██║     ██║██╔══██╗██╔════╝██╔══██╗
-██████╔╝       ███████╗██║     ██║██║  ██║█████╗  ██████╔╝
-██╔══██╗       ╚════██║██║     ██║██║  ██║██╔══╝  ██╔══██╗
-██║  ██║██╗    ███████║███████╗██║██████╔╝███████╗██║  ██║
-╚═╝  ╚═╝╚═╝    ╚══════╝╚══════╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝
-
-*/
-	randomSlider(level)
-	{
-		while (true)
-		{
-			var x = this.character.x;
-			var y = this.character.y;
-
-			var dir = this.getDxDyFromDirection(this.character.direction)
-			var cell = level[y + dir.dy][x + dir.dx];
-			if((cell != 1) && (cell != 4) && (cell != 5))
-			{
-				return this.character.move(dir.dx, dir.dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
-			}
-			this.character.direction = this.getRandomInt(0,3);
 		}
 	}
 

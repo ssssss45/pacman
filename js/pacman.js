@@ -276,7 +276,8 @@ class pacman
 								"respawnDelay" : enem.respawnDelay,
 								"scoreForDeath" : enem.scoreForDeath,
 								"id" : item,
-								"idleMode" : enem.idleMode
+								"idleMode" : enem.idleMode,
+								"locationDistance" : enem.locationDistance
 								});
 						this.enemyArray.push(currentEnemy);
 					}
@@ -378,7 +379,7 @@ class pacman
 					currentEnemy.delay = currentEnemy.respawnDelay;
 				}
 
-				
+
 				if(currentEnemy.delay > 0)
 				{
 					currentEnemy.delay --;
@@ -394,10 +395,9 @@ class pacman
 					
 					if (!currentEnemy.isDead)
 					{
-						//проверка на то чт опротивник вышел из клеткию если нет то выходит используя алгоритм A*
+						//проверка на то чт опротивник вышел из клетки. если нет то выходит используя алгоритм A*
 						if (!currentEnemy.outOfCage)
 						{
-							console.log("comeout");
 							if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
 							{
 								currentEnemy.outOfCage = true;
