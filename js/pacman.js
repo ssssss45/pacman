@@ -2,9 +2,9 @@ class pacman
 {
 	constructor(params)
 	{
-		if (localStorage.pacmanGameTopPlayers != undefined)
+		if (localStorage.pacmanGameTopPlayersList != undefined)
 		{
-			this.topPlayers = JSON.parse(localStorage.pacmanGameTopPlayers);	
+			this.topPlayers = JSON.parse(localStorage.pacmanGameTopPlayersList);	
 		}
 		
 		//уровни
@@ -470,11 +470,6 @@ class pacman
 			"score" : this.score
 		}
 		
-		if (this.topPlayers == undefined)
-		{
-			this.topPlayers = [];
-		}
-
 		var scoreToReplace = -1;
 		//поиск меньшего рекорда в массиве
 		for (var i = this.topPlayers.length - 1; i > -1; i--)
@@ -496,7 +491,7 @@ class pacman
 			this.topPlayers.splice(scoreToReplace,0,record);
 			this.topPlayers.splice(5,1);
 		}
-		localStorage.pacmanGameTopPlayers = JSON.stringify(this.topPlayers);
+		localStorage.pacmanGameTopPlayersList = JSON.stringify(this.topPlayers);
 		this.recordInput.style.visibility = "hidden";
 		this.recordButton.style.visibility = "hidden";
 		this.stateMachine.setGameOver(this.topPlayers);
@@ -556,8 +551,13 @@ class pacman
 
 		if (this.extraLives == -1)
 		{
+			if (this.topPlayers == undefined)
+			{
+				this.topPlayers = [];
+			}
+
 			this.pauseButton.style.visibility = "hidden";
-			var highScore = this.topPlayers.length<5;
+			var highScore = (this.topPlayers.length < 5);
 			for (var i = 0; i < this.topPlayers.length; i++)
 			{
 				if (this.topPlayers[i].score < this.score)

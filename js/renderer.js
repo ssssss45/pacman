@@ -99,8 +99,8 @@ class pacmanRenderer
 
 		this.startIdleAnimation();
 
-		this.levels=params.levels;
-		this.boundDraw= this.draw.bind(this);
+		this.levels = params.levels;
+		this.boundDraw = this.draw.bind(this);
 
 		this.spriteArray = [];
 		document.addEventListener("Pacman: game paused", this.pause.bind(this));
@@ -132,7 +132,7 @@ class pacmanRenderer
 		fillTextureArray(this.playerDeathSpritesLocations, this.playerDeathTextures, this);
 
 		//текстуры врагов
-		for (var i = 0; i< this.enemies.length; i++)
+		for (var i = 0; i < this.enemies.length; i++)
 		{
 			var enemy = this.enemies[i];
 			this.enemyTextures[enemy.location] = {};
@@ -179,7 +179,7 @@ class pacmanRenderer
 		addRectangles(rectangles, this.wallSheet.stage);
 		function addRectangles(rectangles,stage)
 		{
-			for (var i=0; i<rectangles.length; i++)
+			for (var i = 0; i < rectangles.length; i++)
 			{
 				var current = rectangles[i].split(',');
 				addRoundBox(Number(current[0]), Number(current[1]), Number(current[2]), Number(current[3]), Number(current[4]),stage);
@@ -229,7 +229,7 @@ class pacmanRenderer
    ╚═╝   ╚══════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 */
 
-		this.wallTextures=[];
+		this.wallTextures = [];
 		this.wallTexture = PIXI.Texture.fromCanvas(this.wallSheet.view, PIXI.SCALE_MODES.LINEAR);
 		var cells = ['2,8,2','64,8,0','8,7,2','16,5,2','66,0,1','74,0,1','82,0,1','24,1,0','26,1,0','88,1,0','80,0,0','72,2,0','18,0,2','10,2,2'];
 
@@ -243,7 +243,7 @@ class pacmanRenderer
 		//функии заполнения массива текстур
         function fillCells(array, cells, texture)
 		{
-			for (var i=0; i<cells.length; i++)
+			for (var i = 0; i < cells.length; i++)
 			{
 				var current = cells[i].split(',');
 				addCell(array, Number(current[0]),Number(current[1]),Number(current[2]), texture);
@@ -710,8 +710,6 @@ class pacmanRenderer
 		this.pauseText.visible = false;
 		this.welcomeText.visible = true;
 		this.welcomePac.visible = true;
-		//var boundStartIdleAnimation = this.startIdleAnimation.bind(this);
-		//boundStartIdleAnimation();
 		this.startIdleAnimation();
 	}
 
@@ -722,7 +720,7 @@ class pacmanRenderer
 		{
 			this.poly.destroy();
 		}
-		
+
 		this.poly = new PIXI.Graphics();
 		var counter = 50;
 		var open = false;
