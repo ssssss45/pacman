@@ -26,6 +26,8 @@ states:
 		if (this.state == 3)
 		{
 			this.state = 1;
+			var event = new CustomEvent("Pacman: idle");
+			document.dispatchEvent(event);
 		}
 	}
 
@@ -169,11 +171,6 @@ states:
 			this.setGameOver();
 		}
 
-		if ((state==5)||(state=="enterHighScore"))
-		{
-			this.setEnterHighScore();
-		}
-
 		if ((state==6)||(state=="lookHighScore"))
 		{
 			this.setLookHighScore();
@@ -182,6 +179,26 @@ states:
 		if ((state==7)||(state=="levelClear"))
 		{
 			this.setLevelClearScreen();
+		}
+
+		if ((state==8)||(state=="playerDead"))
+		{
+			this.setPlayerDied();
+		}
+
+		if ((state==9)||(state=="resetting"))
+		{
+			this.setResetting();
+		}
+
+		if ((state==10)||(state=="readyScreen"))
+		{
+			this.setReadyScreen();
+		}
+
+		if ((state==11)||(state=="newGame"))
+		{
+			this.setNewGame();
 		}
 	}
 

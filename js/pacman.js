@@ -12,59 +12,43 @@ class pacman
 		//DOM контейнер для генерации игры
 		this.container = document.getElementById(params.container);
 
-		//добавление элементов управления в контейнер
-		this.startButton = document.createElement("button");
-		this.startButton.innerHTML = "New game";
-		var startPlace = params.hight /10;
-		var startPlaceHorizontal = params.width / 10;
-		this.startButton.setAttribute("style","position:absolute; top: "+startPlace*9+"px; height:"+startPlace+"px; left : " + startPlaceHorizontal * 4 + "px; width: " + startPlaceHorizontal*2 + "px; z-index:1");
-		this.startButton.setAttribute("onClick","pacmanGame.startPressed()");
-		this.container.appendChild(this.startButton);
+		//получение параметров
 		this.bottomContainerHight =  params.bottomContainerHight;
-
 		this.enemies = params.enemies;
+		this.ticksVulnerable = params.ticksVulnerable || 100;
+		this.startExtraLives = params.startExtraLives || 2;
 
-		this.ticksVulnerable = params.ticksVulnerable;
-
-		this.outOfCagePoint = {};
-
-		//инпут для ввода рекордов
-		var recordInputPlace = params.hight/2+20;
+		//добавление элементов управления
+		var startPlace = params.hight * 0.9;
+		var startPlaceHorizontal = params.width / 2.5;
+		var recordInputPlace = params.hight / 2 + 20;
 		var recordInputPlaceHorizontal = params.width / 2 - 20;
-		this.recordInput = document.createElement("input");
-		this.recordInput.setAttribute("style","position:absolute; top:" + recordInputPlace + "px; left:" + recordInputPlaceHorizontal + "px; width:40px; z-index:2" );
-		this.recordInput.setAttribute("maxlength", 3);
-		this.recordInput.style.visibility = "hidden";
-		//кнопка для ввода рекордов
-		recordInputPlace += 20;
-		this.recordButton = document.createElement("button");
-		this.recordButton.innerHTML="Enter name";
-		this.recordButton.setAttribute("style","position:absolute; top:" + recordInputPlace + "px; left:" + recordInputPlaceHorizontal + "px; z-index:2 ");
-		this.recordButton.setAttribute("onClick","pacmanGame.addScore()");
-		this.recordButton.style.visibility = "hidden";
-		this.container.appendChild(this.recordButton);
-		this.container.appendChild(this.recordInput);
-		//кнопка паузы
-		this.pauseButton = document.createElement("button");
 		var pausePlace = params.hight + this.bottomContainerHight/2;
-		this.pauseButton.innerHTML = "Pause";
+		var scorePlace = params.hight + 10;
+		
+		//инпут для ввода рекордов
+		this.recordInput = elementGenerator("input", undefined, recordInputPlace, recordInputPlaceHorizontal, 40, "hidden", undefined, this.container);
+		this.recordInput.setAttribute("maxlength", 3);
+		
+		//кнопка начала игры
+		this.startButton = elementGenerator("button","New game", startPlace, startPlaceHorizontal, startPlaceHorizontal/2, "visible", "pacmanGame.startPressed()", this.container);
+		
+		//кнопка ввода рекордов
+		recordInputPlace += 20;
+		this.recordButton = elementGenerator("button","Enter name", recordInputPlace, recordInputPlaceHorizontal, undefined, "hidden", "pacmanGame.addScore()", this.container);
+		
 		//кнопка паузы
-		this.pauseButton.setAttribute("style","position:absolute; z-index:1; top:"+pausePlace+"px");
-		this.pauseButton.style.visibility = "hidden";
-		this.pauseButton.setAttribute("onClick","pacmanGame.pausePressed()");
-		this.container.appendChild(this.pauseButton);
-		//контейнер с очками
-		this.scoreContainer = document.createElement("div");
-		this.scoreContainer.innerHTML = "";
-		var scorePlace = params.hight + 10 ;
-		this.scoreContainer.setAttribute("style","position:absolute; top:" + scorePlace + "px; color: white; z-index: 1;");		
-		this.container.appendChild(this.scoreContainer);
-		//контейнер с количеством жизней
-		this.lifeContainer = document.createElement("div");
-		this.lifeContainer.innerHTML = "";
-		this.lifeContainer.setAttribute("style","position:absolute; top:" + scorePlace + "px; left:" + params.width/2 + "px; color: white; z-index: 1;");		
-		this.container.appendChild(this.lifeContainer);
+		this.pauseButton = elementGenerator("button","Pause", pausePlace, undefined, undefined, "hidden", "pacmanGame.pausePressed()", this.container);
 
+		//контейнер с очками
+		this.scoreContainer = elementGenerator("div", "", scorePlace, undefined, undefined, "visible", undefined, this.container);
+		this.scoreContainer.style.color = "white";
+		
+		//контейнер с количеством жизней
+		this.lifeContainer = elementGenerator("div", "", scorePlace,  params.width/2, undefined, "visible", undefined, this.container);
+		this.lifeContainer.style.color = "white";
+
+		//инициализация отрисовки
 		this.renderer= new pacmanRenderer({
 			"pathToSpriteSheet" : params.pathToSpriteSheet,
 			"spriteSheetWidth" : params.spriteSheetWidth,
@@ -87,11 +71,16 @@ class pacman
 			"enemies" : this.enemies
 		});
 
+		//задание переменных которые понадобятся при создании уровня и игре
 		this.canvas = this.renderer.returnContainer();
-
-		this.startExtraLives = params.startExtraLives || 2;
-		this.extraLives = this.startExtraLives;
+		this.outOfCagePoint = {};
 		this.enemyArray = [];
+		this.score = 0;
+		this.leftActive = false;
+		this.rightActive = false;
+		this.downActive = false;
+		this.upActive = false;
+		this.currentLevelNumber = -1;
 
 		//стейт машина
 		this.stateMachine = new pacmanStateMachine();
@@ -105,27 +94,13 @@ class pacman
 		addKeyToController("down",[40],this.keycon);
 		addKeyToController("d",[88],this.keycon);
 
-		function addKeyToController(name,keys,keycon)
-		{
-			var key={
-				name: name,
-				keys: keys,
-				active: true
-			};
-			keycon.bindActions(key);
-		}
-
-		this.score = 0;
-		this.leftActive = false;
-		this.rightActive = false;
-		this.downActive = false;
-		this.upActive = false;
+		//слушатели на события контроллера
 		this.canvas.addEventListener("controls:activate",
 			this.activateListenerActions.bind(this));
 		this.canvas.addEventListener("controls:deactivate",
 			this.deactivateListenerActions.bind(this));
-		this.currentLevelNumber = -1;
 
+		//слушатели на события стейт машины и отрисовщика
 		document.addEventListener("Pacman: game start", this.startPlaying.bind(this));
 		document.addEventListener("Pacman: ready screen", this.readyScreen.bind(this));
 		document.addEventListener("Pacman: game paused", this.pauseHandler.bind(this));
@@ -136,7 +111,31 @@ class pacman
 		document.addEventListener("Pacman: level clear", this.handleLevelClear.bind(this));
 		document.addEventListener("Pacman: enter high score", this.handleEnterScore.bind(this));
 		document.addEventListener("Pacman: game over", this.gameOverHandler.bind(this));
+		document.addEventListener("Pacman: idle", this.idleHandler.bind(this));
 		document.addEventListener("visibilitychange", this.tabChanged.bind(this));
+
+		//функция передачи кнопок в контроллер
+		function addKeyToController(name,keys,keycon)
+		{
+			var key={
+				name: name,
+				keys: keys,
+				active: true
+			};
+			keycon.bindActions(key);
+		}
+
+		//функция генерации элементов управления
+		function elementGenerator(type, text, top, left, width, visibility, onclick, container)
+		{
+			var button = document.createElement(type);
+			button.innerHTML = text;
+			button.setAttribute("style","position:absolute; z-index:1; top:"+top+"px; left:"+left+"px; width:"+width+"px;");
+			button.style.visibility = visibility;
+			button.setAttribute("onClick",onclick);
+			container.appendChild(button);
+			return button;
+		}
 	}
 /*
 ██╗     ██╗███████╗        █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -620,6 +619,11 @@ class pacman
 	}
 
 	gameOverHandler()
+	{
+		this.startButton.style.visibility = "visible";
+	}
+
+	idleHandler()
 	{
 		this.startButton.style.visibility = "visible";
 	}

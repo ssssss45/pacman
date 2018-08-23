@@ -134,6 +134,7 @@ class pacmanRenderer
 		document.addEventListener("Pacman: ready screen", this.readyScreen.bind(this));
 		document.addEventListener("Pacman: game start", this.removeReadyScreen.bind(this));
 		document.addEventListener("Pacman: enter high score", this.handleEnterName.bind(this));
+		document.addEventListener("Pacman: idle", this.idleHandler.bind(this));
 	}
 
 /*
@@ -723,5 +724,10 @@ class pacmanRenderer
 	{
 		this.readyScreenText.alpha = 0;
 		this.pauseBox.alpha = 0;	
+	}
+
+	idleHandler()
+	{
+		
 	}
 }
