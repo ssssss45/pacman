@@ -8,6 +8,7 @@ class pacmanRenderer
 		this.spriteSheetWidthSprites = params.spriteSheetWidthSprites;
 		this.spriteSheetHightSprites = params.spriteSheetHightSprites;
 		this.enemies = params.enemies;
+		this.startExtraLives = params.startExtraLives;
 		
 		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
 		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
@@ -15,7 +16,6 @@ class pacmanRenderer
 		this.spriteHight = Math.round((this.spriteSheetHight - this.spriteSheetBorderTop - params.spriteSheetBorderBottom)/this.spriteSheetHightSprites);
 		this.spriteWidth = Math.round((this.spriteSheetWidth - this.spriteSheetBorderLeft - params.spriteSheetBorderRight)/this.spriteSheetWidthSprites);
 
-		this.lifemax = params.lifeMax;
 		this.gameWidth = params.width;
 		this.gameHight = params.hight;
 		this.bottomContainerHight = params.bottomContainerHight;
@@ -131,6 +131,7 @@ class pacmanRenderer
 		document.addEventListener("Pacman: game start", this.removeReadyScreen.bind(this));
 		document.addEventListener("Pacman: enter high score", this.handleEnterName.bind(this));
 		document.addEventListener("Pacman: idle", this.idleHandler.bind(this));
+		document.addEventListener("Pacman: new game", this.resetLives.bind(this));
 	}
 
 /*
@@ -292,7 +293,8 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
-		this.playSound("button.wav");
+		this.buttonSound.play();
+		this.scoresSong.stop();
 		if (this.gameSong != undefined)
 		{
 			this.gameSong.stop();
@@ -534,7 +536,7 @@ class pacmanRenderer
 
 		if (id == 6)
 		{	
-			this.playPlayerStep();
+			this.playerStep.play();
 			switch (direction)
 			{
 				case 0: sprite.rotation = Math.PI; break;
@@ -581,7 +583,18 @@ class pacmanRenderer
 	//уничтожение спрайта (при "съедении")
 	destroySprite(x,y)
 	{
-		this.playDotEaten();
+		if (this.currentLevel[x][y] == 2)
+		{
+			this.dotEaten.play();	
+		}
+		else
+		{
+			if (this.currentLevel[x][y] == 3)
+			{
+				this.ozvSound.play();
+			}
+		}
+		
 		this.spriteArray[x][y].destroy();	
 	}
 
@@ -641,12 +654,12 @@ class pacmanRenderer
 
 	pause()
 	{
-		this.playSound("button.wav");
+		this.buttonSound.play();
 		if (this.pauseBox.alpha == 0)
 		{
 			this.pauseBox.alpha = 0.3;
 			this.pauseText.alpha = 1;
-			this.gameSong.pause();
+			this.gameSong.stop();
 		}
 		else
 		{
@@ -667,18 +680,26 @@ class pacmanRenderer
 	{
 		this.gameSong.stop();
 		var player = this.interactiveSprites[6];
+		this.extraLives --;
 		player.rotation = 0;
 		player.textures = [this.playerDeathTextures[0]];
 		var i = 0;
 		var length = this.playerDeathTextures.length;
-
+		console.log(length);
 		var boundAnimate = animate.bind(this);
 		setTimeout(boundAnimate,500);
 		function animate()
 		{
 			if (i == 0)
 			{
-				this.playSound("death.wav");
+				if  (this.extraLives == -1)
+				{
+					this.gameOverSound.play();
+				}	
+				else
+				{
+					this.deathSound.play();
+				}
 			}
 			if (i<length)	
 			{
@@ -732,6 +753,8 @@ class pacmanRenderer
 
 	gameOver(event)
 	{
+		this.animatePlayerDeath();
+		this.gameSong.stop();
 		var topPlayers = event.detail.topPlayers;
 		var temp;
 		this.scoresScreenText.alpha = 0;
@@ -745,7 +768,7 @@ class pacmanRenderer
 		}
 		this.gameOverScore.alpha = 1;
 		this.pauseBox.alpha = 0.3;	
-		this.gameSong.play();
+		this.scoresSong.play();
 	}
 
 /*
@@ -836,6 +859,7 @@ class pacmanRenderer
 
 	handleEnterName(event)
 	{
+		this.gameSong.stop();
 		this.scoresScreenText.alpha = 1;
 		this.scoresScreenText.text = "CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: "+event.detail.score+"\nEnter your name";
 		this.pauseBox.alpha = 0.5;
@@ -851,6 +875,7 @@ class pacmanRenderer
 	{
 		this.readyScreenText.alpha = 0;
 		this.pauseBox.alpha = 0;	
+		console.log("111");
 	}
 
 	idleHandler()
@@ -863,6 +888,11 @@ class pacmanRenderer
 		this.startIdleAnimation();
 	}
 
+	resetLives()
+	{
+		this.extraLives = this.startExtraLives;
+	}
+
 /*
 ██████╗ ██╗      █████╗ ██╗   ██╗    ███████╗ ██████╗ ██╗   ██╗███╗   ██╗██████╗ 
 ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔═══██╗██║   ██║████╗  ██║██╔══██╗
@@ -872,25 +902,22 @@ class pacmanRenderer
 ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝       ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
 */
 
-	playSound(sound)
-	{
-		var sound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/"+sound]);
-			sound.play();	
-		setTimeout(sound.close, 100);
-	}
-
 	playIdleSound()
 	{
 		this.idleSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/idle.wav"]);
-			this.idleSound.play();	
+		this.idleSound.play();	
 	}
 
 	startGameSong()
 	{
-		this.gameSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameSong.wav"]);
-			this.gameSong.play();
-			this.gameSong.loop = true;	
+		this.gameSong.play();
+		this.gameSong.loop = true;	
+	}
 
+	startScoresSong()
+	{
+		this.scoresSong.play();
+		this.scoresSong.loop = true;	
 	}
 
 	switchGameSongSpeed(distance)
@@ -905,16 +932,6 @@ class pacmanRenderer
 		}
 	}
 
-	playPlayerStep()
-	{
-		this.playerStep.play();
-	}
-
-	playDotEaten()
-	{
-		this.dotEaten.play();
-	}
-
 	playEatEnemy()
 	{
 		this.enemyEaten.play();
@@ -925,6 +942,12 @@ class pacmanRenderer
 		this.playerStep = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/walk.wav"]);
 		this.dotEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/dotEaten.wav"]);
 		this.enemyEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/eatEnemy.wav"]);
+		this.scoresSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/scores.wav"]);
+		this.gameSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameSong.wav"]);
+		this.buttonSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/button.wav"]);
+		this.deathSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/death.wav"]);
+		this.ozvSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/ozv.wav"]);
+		this.gameOverSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameOver.wav"]);
 		var event = new CustomEvent("Pacman: loading finished");
 		this.loadingText.visible = false;
 		document.dispatchEvent(event);

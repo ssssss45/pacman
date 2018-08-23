@@ -65,7 +65,7 @@ class pacman
 			"spriteSheetBorderTop" : params.spriteSheetBorderTop,
 			"spriteSheetBorderBottom" : params.spriteSheetBorderBottom,
 			"spriteSheetBorderRight" : params.spriteSheetBorderRight,
-			"lifeMax" : params.lifeMax,
+			"startExtraLives" : params.startExtraLives,
 			"width" : params.width,
 			"hight" : params.hight,
 			"bottomContainerHight" : params.bottomContainerHight,
@@ -382,7 +382,6 @@ class pacman
 					currentEnemy.delay = currentEnemy.respawnDelay;
 				}
 
-
 				if(currentEnemy.delay > 0)
 				{
 					currentEnemy.delay --;
@@ -390,6 +389,7 @@ class pacman
 				}
 				else
 				{
+					//если противник уязвим то уменьшаем счетчик уязвимости
 					if (currentEnemy.vulnerable > 0) 
 					{
 						currentEnemy.vulnerable--;
@@ -476,7 +476,6 @@ class pacman
 		var name =  this.recordInput.value;
 		while (name.length < 3)
 		{
-			console.log("worked");
 			name +=" ";
 		}
 		var record = {
@@ -559,7 +558,6 @@ class pacman
 	playerDeath()
 	{
 		clearInterval(this.currentGameInterval);
-		this.renderer.animatePlayerDeath(this.player);
 
 		this.extraLives--;
 
