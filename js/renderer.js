@@ -564,7 +564,7 @@ class pacmanRenderer
 ╚██████╗██║  ██║██║  ██║██║  ██║       ██║   ███████╗██╔╝ ██╗██╗
  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝
 */
-	upateSpriteTexture(id, direction, vulnerable, isDead)
+	upateSpriteTexture(id, direction, vulnerable, isDead, delay)
 	{
 		var sprite = this.interactiveSprites[id];
 		if (id == 6)
@@ -580,10 +580,22 @@ class pacmanRenderer
 		}
 		else
 		{
+			if (delay != undefined)
+			{
+				if ((delay > 7) || (delay%2 == 1))
+				{
+					sprite.alpha = 0.5;	
+				}
+				else
+				{
+					sprite.alpha = 1;
+				}
+			}
+
 			if (vulnerable > 0)
 			{
 				sprite.texture = sprite.enemyTextures.vulnerableSprites[0];
-				if((vulnerable < 10)&&(vulnerable % 2 == 0))
+				if ((vulnerable < 10) && (vulnerable % 2 == 0))
 				{
 					sprite.texture = sprite.enemyTextures.vulnerableSprites[1];
 				}
@@ -592,6 +604,7 @@ class pacmanRenderer
 			{
 				if (isDead)
 				{
+					sprite.alpha = 1;
 					setSprite(sprite, sprite.enemyTextures.deadSprites, direction);
 				}
 				else
@@ -657,7 +670,8 @@ class pacmanRenderer
 		
 		sprite.repeats = 0;			
 		animate();
-		sprite.animInterval = setInterval(animate,20);
+		var animInterval = setInterval(animate,20);
+		sprite.animInterval = animInterval;
 
 		function animate()
 		{	
@@ -672,7 +686,7 @@ class pacmanRenderer
 			}
 			else
 			{
-				clearInterval(sprite.animInterval);
+				clearInterval(animInterval);
 			}
 		}
 	}
@@ -700,7 +714,10 @@ class pacmanRenderer
 	removeBonusSprite(id, noSound)	
 	{
 		this.currentLevelBonuses[id].sprite.destroy();
-		if (noSound) {this.bonusSound.play();}
+		if (noSound == undefined) 
+		{
+			this.bonusSound.play();
+		}
 	}
 
 /*
@@ -808,6 +825,7 @@ class pacmanRenderer
 				if (i == 6) player.textures = this.playerTextures;
 				player.x = player.originX;
 				player.y = player.originY;
+				player.alpha = 1;
 			}
 		}
 		this.gameSong.play();
@@ -896,7 +914,7 @@ class pacmanRenderer
 ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ███████║╚██████╗╚██████╔╝██║  ██║███████╗
 ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 */
-	dislpayScore(number,x,y, lives)
+	displayScore(number,x,y, lives)
 	{
 		var score = new PIXI.Text(number,
 			{
@@ -949,6 +967,7 @@ class pacmanRenderer
 	{
 		this.pauseBox.alpha = 0.5;
 		this.readyScreenText.alpha = 1;
+		this.gameSong.speed = 1;
 	}
 
 	removeReadyScreen()

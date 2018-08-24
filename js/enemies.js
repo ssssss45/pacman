@@ -568,7 +568,7 @@ class enemy
 
 	standInPlace(level)
 	{
-		this.character.renderer.upateSpriteTexture(this.character.id, this.direction, this.vulnerable, this.isDead);
+		this.character.renderer.upateSpriteTexture(this.character.id, 0, this.vulnerable, this.isDead, this.delay);
 	}
 
 /*

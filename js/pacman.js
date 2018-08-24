@@ -18,6 +18,7 @@ class pacman
 		this.ticksVulnerable = params.ticksVulnerable || 100;
 		this.startExtraLives = params.startExtraLives || 2;
 		this.bonuses = params.bonuses;
+		this.lifeMax = params.lifeMax;
 
 		//добавление элементов управления
 		var startPlace = params.hight * 0.9;
@@ -412,19 +413,25 @@ class pacman
 				{
 					this.renderer.removeBonusSprite(i);
 					current.isOnField = false;
-					this.updateLives();
+
 					changeEnemyParams(this.enemyArray, current.ozv, current.freeze);
 
 					if (current.points != 0)
 					{
 						this.score += current.points;
-						this.renderer.dislpayScore(current.points, current.x,current.y)
+						this.renderer.displayScore(current.points, current.x,current.y)
 					}
 
 					if (current.lives != 0)
 					{
 						this.extraLives += current.lives;
-						this.renderer.dislpayScore(current.lives, current.x,current.y, true)
+						if (this.extraLives > this.lifeMax)
+						{
+							this.extraLives = this.lifeMax;
+						}	
+						this.renderer.extraLives = this.extraLives;
+						this.updateLives();
+						this.renderer.displayScore(current.lives, current.x,current.y, true)
 					}
 				}
 			}
@@ -434,12 +441,12 @@ class pacman
 				for (var i = 0; i < enemyArray.length; i++)
 				{	
 					var current = enemyArray[i];
-					if ((current.canBeVulnerable) && (!current.character.isDead) && (amount != undefined))
+					if ((current.canBeVulnerable) && (!current.isDead) && (amount != undefined))
 					{
 						current.vulnerable += amount;
 					}
 
-					if ((delay != undefined) && (!current.isDead))
+					if ((delay != undefined) && (!current.isDead) && (current.outOfCage))
 					{
 						current.clearData();
 						current.delay += delay;
