@@ -412,10 +412,20 @@ class pacman
 				{
 					this.renderer.removeBonusSprite(i);
 					current.isOnField = false;
-					this.extraLives += current.lives;
 					this.updateLives();
 					changeEnemyParams(this.enemyArray, current.ozv, current.freeze);
-					this.score += current.points;
+
+					if (current.points != 0)
+					{
+						this.score += current.points;
+						this.renderer.dislpayScore(current.points, current.x,current.y)
+					}
+
+					if (current.lives != 0)
+					{
+						this.extraLives += current.lives;
+						this.renderer.dislpayScore(current.lives, current.x,current.y, true)
+					}
 				}
 			}
 
@@ -429,7 +439,7 @@ class pacman
 						current.vulnerable += amount;
 					}
 
-					if (delay != undefined)
+					if ((delay != undefined) && (!current.isDead))
 					{
 						current.clearData();
 						current.delay += delay;
@@ -461,6 +471,16 @@ class pacman
 					currentEnemy.delay = currentEnemy.respawnDelay;
 				}
 
+				//если противник уязвим то уменьшаем счетчик уязвимости
+				if (currentEnemy.vulnerable > 0) 
+				{
+					if (currentEnemy.vulnerable == 1)
+					{
+						currentEnemy.clearData();
+					}
+					currentEnemy.vulnerable--;
+				}
+
 				if(currentEnemy.delay > 0)
 				{
 					currentEnemy.delay --;
@@ -468,19 +488,18 @@ class pacman
 					{
 						currentEnemy.idle(this.currentLevel);
 					}
+					else
+					{
+						currentEnemy.standInPlace(this.currentLevel);
+					}
 				}
 				else
 				{
-					//если противник уязвим то уменьшаем счетчик уязвимости
-					if (currentEnemy.vulnerable > 0) 
-					{
-						currentEnemy.vulnerable--;
-					}
-
 					
 					if (!currentEnemy.isDead)
 					{
 						var currentEnemyDistance = currentEnemy.distanceToPlayer(this.player.x,this.player.y)
+						//подсчет минимального расстояния до игрока. нужен для изменения музыки
 						if (minDistanceToEnemy > currentEnemyDistance)
 						{
 							minDistanceToEnemy = currentEnemyDistance;
@@ -494,17 +513,20 @@ class pacman
 							}
 							else
 							{
+								//выход из клетки
 								currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);			
 							}
 						}
 						else
 						{
+							//если противнику уязвим то он пытается убежать
 							if (currentEnemy.vulnerable > 0)
 							{
 								var result = currentEnemy.escape(this.currentLevel, this.player.x, this.player.y);
 							}
 							else
 							{
+							//если нет то двигается нормально
 								var result = currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
 							}
 							 
@@ -512,32 +534,34 @@ class pacman
 						}
 					}
 					else
-					{
+					{	//движение в точку воскрешения, если противник мертв
 						currentEnemy.deadMove(this.currentLevel, currentEnemy.character.originX, currentEnemy.character.originY);
 					}
-					
-					//проверка на столкновение игрока и противника	
-					if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
+				}
+
+				//проверка на столкновение игрока и противника	
+				if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
+				{
+					//если противник уязвим то он погибает
+					if (currentEnemy.vulnerable > 0) 
 					{
-						//если противник уязвим то он погибает
-						if (currentEnemy.vulnerable > 0) 
+						currentEnemy.vulnerable = 0;
+						currentEnemy.setDead();
+						this.score += currentEnemy.scoreForDeath;
+						currentEnemy.outOfCage = false;
+						currentEnemy.clearData();
+						currentEnemy.delay = 0;
+					}
+					//если нет, противник может есть игрока и жив, то погибает игрок
+					else
+					{
+						if((currentEnemy.killsPlayer == true) && (!currentEnemy.isDead))
 						{
-							currentEnemy.vulnerable = 0;
-							currentEnemy.setDead();
-							this.score += currentEnemy.scoreForDeath;
-							currentEnemy.outOfCage = false;
-							currentEnemy.clearData();
-						}
-						//если нет, противник может есть игрока и жив, то погибает игрок
-						else
-						{
-							if((currentEnemy.killsPlayer == true) && (!currentEnemy.isDead))
-							{
-								this.playerDeath()	
-							}
+							this.playerDeath()	
 						}
 					}
 				}
+
 				this.renderer.switchGameSongSpeed(minDistanceToEnemy);
 			}
 /*

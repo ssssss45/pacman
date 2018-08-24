@@ -74,7 +74,7 @@ class enemy
 	{
 		this.isDead = true;
 		this.character.renderer.playEatEnemy();
-		this.character.renderer.enemyEatenScore(this.scoreForDeath, this.character.x, this.character.y);
+		this.character.renderer.displayScore(this.scoreForDeath, this.character.x, this.character.y);
 	}
 
 	distanceToPlayer(playerX, playerY)
@@ -557,14 +557,20 @@ class enemy
 		if ((this.character.x == this.character.originX) &&  (this.character.y == this.character.originY))
 		{
 			var direction = this.getDirectionFromDxDy(this.idleDX, this.idleDY);
-			this.character.move(this.idleDX, this.idleDY, direction, level, false, false);
+			this.character.move(this.idleDX, this.idleDY, direction, level, this.isDead,this.vulnerable, this.outOfCage);
 		}
 		else
 		{
 			var direction = this.getDirectionFromDxDy(-this.idleDX, -this.idleDY);
-			this.character.move(-this.idleDX, -this.idleDY, direction, level, false, false);
+			this.character.move(-this.idleDX, -this.idleDY, direction, level, this.isDead,this.vulnerable, this.outOfCage);
 		}
 	}
+
+	standInPlace(level)
+	{
+		this.character.renderer.upateSpriteTexture(this.character.id, this.direction, this.vulnerable, this.isDead);
+	}
+
 /*
 ███╗   ███╗██╗███████╗ ██████╗
 ████╗ ████║██║██╔════╝██╔════╝

@@ -554,7 +554,19 @@ class pacmanRenderer
 		
 		sprite.visible = visibilityMarker;
 		this.animateChar(x, y, dx * this.blockWidth, dy * this.blockHight, sprite);
-
+		this.upateSpriteTexture(id, direction, vulnerable, isDead);
+	}
+/*
+ ██████╗██╗  ██╗ █████╗ ██████╗     ████████╗███████╗██╗  ██╗   
+██╔════╝██║  ██║██╔══██╗██╔══██╗    ╚══██╔══╝██╔════╝╚██╗██╔╝   
+██║     ███████║███████║██████╔╝       ██║   █████╗   ╚███╔╝    
+██║     ██╔══██║██╔══██║██╔══██╗       ██║   ██╔══╝   ██╔██╗    
+╚██████╗██║  ██║██║  ██║██║  ██║       ██║   ███████╗██╔╝ ██╗██╗
+ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝
+*/
+	upateSpriteTexture(id, direction, vulnerable, isDead)
+	{
+		var sprite = this.interactiveSprites[id];
 		if (id == 6)
 		{	
 			this.playerStep.play();
@@ -600,6 +612,7 @@ class pacmanRenderer
 			}
 		}
 	}
+
 /*
 ██████╗ ███████╗███████╗████████╗    ███████╗██████╗ ██████╗ ██╗████████╗███████╗
 ██╔══██╗██╔════╝██╔════╝╚══██╔══╝    ██╔════╝██╔══██╗██╔══██╗██║╚══██╔══╝██╔════╝
@@ -883,20 +896,27 @@ class pacmanRenderer
 ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ███████║╚██████╗╚██████╔╝██║  ██║███████╗
 ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 */
-	enemyEatenScore(number,x,y)
+	dislpayScore(number,x,y, lives)
 	{
 		var score = new PIXI.Text(number,
 			{
 				"fontFamily" : 'Courier New', 
-				"fontSize": this.blockHight/1.5, 
+				"fontSize": this.blockHight/1, 
 				"fill" : 0xFFD700, 
 				"align" : 'left',
 				"dropShadow": true,
 				"dropShadowDistance": 10,
 				"dropShadowAlpha": 0.2,
+				"strokeThickness": 2
 			});
-		score.x = x*this.blockWidth;
-		score.y = y*this.blockHight;
+		score.x = x * this.blockWidth;
+		score.y = y * this.blockHight;
+		if (lives != undefined)
+		{
+			score.style.fill = 0xff6468;
+			score.text = number + " UP";
+			score.y -= this.blockHight;
+		}
 		this.gameCanvas.stage.addChild(score);
 		this.scoreSpriteArray.push(score);
 		setTimeout(this.removeScore.bind(this), 3000);
