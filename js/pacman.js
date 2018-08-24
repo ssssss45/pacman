@@ -329,7 +329,6 @@ class pacman
 		//создание бонусов в начале уровня
 		for (var k = 0; k < this.currentLevelBonuses.length; k++)
 		{
-			console.log(this.currentLevelBonuses[k].points);
 			var bonus = this.currentLevelBonuses[k];
 			if (bonus.spawnsAtStart)
 			{
@@ -348,7 +347,6 @@ class pacman
 		this.newdx = 0;
 		this.newdy = 0;
 		this.moveTimer = 0;
-		console.log(this.enemyArray);
 	}
 
 /*
@@ -561,7 +559,6 @@ class pacman
 				//если таймер дошёл до нуля и spawns!=0 то создаем бонус
 				if ((bonus.timeToSpawn == 0) && (!bonus.isOnField) && (bonus.spawns != 0))
 				{
-					console.log(bonus);
 					bonus.isOnField = true;
 					bonus.timeToSpawn = bonus.spawns;
 					//если у бонуса есть локация то генерируем его туда
@@ -572,7 +569,6 @@ class pacman
 					//если нет то генерируем случайное метоположение где нет ничего	
 					else
 					{
-						console.log("??");
 						this.generateRandomLocationForBonus(bonus);
 						this.renderer.spawnBonusSprite(bonus.x, bonus.y, i);
 					}

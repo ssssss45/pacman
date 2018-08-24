@@ -20,15 +20,15 @@ class enemy
 							"id" : params.id
 						});
 		this.speed = params.speed||1;
-		this.killsPlayer = params.killsPlayer;
+		this.killsPlayer = params.killsPlayer||true;
 		this.defaultDelay = params.delay||0;
-		this.delay = this.defaultDelay;
+		this.delay = this.defaultDelay||0;
 		this.active = false;
-		this.canBeVulnerable = params.canBeVulnerable;
+		this.canBeVulnerable = params.canBeVulnerable||true;
 		this.isDead = false;
 		this.x = this.character.x;
 		this.y = this.character.y;
-		this.locationDistance = params.locationDistance;
+		this.locationDistance = params.locationDistance||3;
 
 		this.dx = this.character.dx;
 		this.dy = this.character.dy;
@@ -250,7 +250,7 @@ class enemy
 
 				this.direction = this.getDirectionFromDxDy(this.dx,this.dy)
 				return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
-				}
+			}
 		}
 
 		function checkAxis(dx,dy, dir1, dir2, currThis)

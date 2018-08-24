@@ -681,7 +681,7 @@ class pacmanRenderer
 		bonus.sprite.y = y * this.blockHight;
 		bonus.sprite.width = this.blockWidth;
 		bonus.sprite.height = this.blockHight;
-		this.gameCanvas.stage.addChild(bonus.sprite);
+		this.gameCanvas.stage.addChildAt(bonus.sprite, 0);
 	}
 
 	removeBonusSprite(id, noSound)	
@@ -746,7 +746,6 @@ class pacmanRenderer
 		player.textures = [this.playerDeathTextures[0]];
 		var i = 0;
 		var length = this.playerDeathTextures.length;
-		console.log(length);
 		var boundAnimate = animate.bind(this);
 		setTimeout(boundAnimate,500);
 		function animate()
