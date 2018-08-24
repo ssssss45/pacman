@@ -33,7 +33,7 @@ class character
 			if (level[dx] == undefined) return true;
 			if (isPlayer)
 				{
-					return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
+					return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
 				}
 				else
 				{
@@ -43,7 +43,7 @@ class character
 					}
 					else
 					{
-						return ((level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));		
+						return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));		
 					}
 				}
 		}

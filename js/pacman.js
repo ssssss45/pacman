@@ -221,10 +221,12 @@ class pacman
 		this.renderer.boundDestroyLevel(true);
 		this.currentLevelNumber++;
 		this.enemyArray = [];
+
 		if (this.currentLevelNumber == this.levels.length)
 		{
 			this.currentLevelNumber = 0;
 		}
+
 		this.renderer.boundDraw(this.currentLevelNumber);
 
 		this.currentLevelBonuses = [];
@@ -331,7 +333,15 @@ class pacman
 			var bonus = this.currentLevelBonuses[k];
 			if (bonus.spawnsAtStart)
 			{
-				this.renderer.spawnBonusSprite(bonus.x,bonus.y,k);
+				if (bonus.location!=0)
+				{
+					this.renderer.spawnBonusSprite(bonus.x,bonus.y,k);
+				}
+				else
+				{
+					this.generateRandomLocationForBonus(bonus);
+					this.renderer.spawnBonusSprite(bonus.x,bonus.y,k);
+				}	
 			}
 		}
 		this.newDirection = -1;
@@ -340,6 +350,7 @@ class pacman
 		this.moveTimer = 0;
 		console.log(this.enemyArray);
 	}
+
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
 ██╔════╝ ██╔══██╗████╗ ████║██╔════╝██╔════╝╚══██╔══╝██╔════╝██╔══██╗
@@ -347,8 +358,8 @@ class pacman
 ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  ╚════██║   ██║   ██╔══╝  ██╔═══╝ 
 ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗███████║   ██║   ███████╗██║     
  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝   ╚═╝   ╚══════╝╚═╝     
-
 */
+
 	gameStep()
 	{
 		var oldscore = this.score;
@@ -387,7 +398,7 @@ class pacman
 			//если съеден озверин, то всем противникам которые могут быть уязвимы и живы выдается уязвимость
 			if (score == -1)
 			{
-				addVulnerability(this.enemyArray, this.ticksVulnerable);
+				changeEnemyParams(this.enemyArray, this.ticksVulnerable);
 			}
 			//если съедена точка то начисляются очки
 			else
@@ -406,19 +417,27 @@ class pacman
 				{
 					this.renderer.removeBonusSprite(i);
 					current.isOnField = false;
-					addVulnerability(this.enemyArray, current.ozv);
+					this.extraLives += current.lives;
+					this.updateLives();
+					changeEnemyParams(this.enemyArray, current.ozv, current.freeze);
 					this.score += current.points;
 				}
 			}
 
-			function addVulnerability (enemyArray, amount)
+			function changeEnemyParams (enemyArray, amount, delay)
 			{
 				for (var i = 0; i < enemyArray.length; i++)
 				{	
 					var current = enemyArray[i];
-					if ((current.canBeVulnerable) && (!current.character.isDead))
+					if ((current.canBeVulnerable) && (!current.character.isDead) && (amount != undefined))
 					{
-						current.vulnerable += amount + 1;
+						current.vulnerable += amount;
+					}
+
+					if (delay != undefined)
+					{
+						current.clearData();
+						current.delay += delay + 1;
 					}
 				}
 			}
@@ -431,6 +450,7 @@ class pacman
 ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗
 ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝
 */
+
 			var minDistanceToEnemy = this.currentLevel.length;
 			for (var i = 0; i < this.enemyArray.length; i++)
 			{	
@@ -449,7 +469,10 @@ class pacman
 				if(currentEnemy.delay > 0)
 				{
 					currentEnemy.delay --;
-					currentEnemy.idle(this.currentLevel);
+					if (!currentEnemy.outOfCage)
+					{
+						currentEnemy.idle(this.currentLevel);
+					}
 				}
 				else
 				{
@@ -534,12 +557,27 @@ class pacman
 			{
 				var bonus = this.currentLevelBonuses[i];
 				//если у бонуса есть таймер до появления то уменьшаем его
-				if (bonus.timeToSpawn > 0) {bonus.timeToSpawn --}
+				if ((bonus.timeToSpawn > 0) && (!bonus.isOnField)) {bonus.timeToSpawn --}
 				//если таймер дошёл до нуля и spawns!=0 то создаем бонус
-
-				//если у бонуса есть локация то генерируем его туда
-
-				//если нет то генерируем случайное метоположение где нет ничего
+				if ((bonus.timeToSpawn == 0) && (!bonus.isOnField) && (bonus.spawns != 0))
+				{
+					console.log(bonus);
+					bonus.isOnField = true;
+					bonus.timeToSpawn = bonus.spawns;
+					//если у бонуса есть локация то генерируем его туда
+					if (bonus.location != 0)
+					{
+						this.renderer.spawnBonusSprite(bonus.x, bonus.y, i);
+					}
+					//если нет то генерируем случайное метоположение где нет ничего	
+					else
+					{
+						console.log("??");
+						this.generateRandomLocationForBonus(bonus);
+						this.renderer.spawnBonusSprite(bonus.x, bonus.y, i);
+					}
+				
+				}
 			}
 		}
 
@@ -554,6 +592,20 @@ class pacman
 			}
 		}	
 	}
+
+/*
+██╗     ██╗██╗   ██╗███████╗███████╗
+██║     ██║██║   ██║██╔════╝██╔════╝
+██║     ██║██║   ██║█████╗  ███████╗
+██║     ██║╚██╗ ██╔╝██╔══╝  ╚════██║
+███████╗██║ ╚████╔╝ ███████╗███████║
+╚══════╝╚═╝  ╚═══╝  ╚══════╝╚══════╝
+*/
+	updateLives()
+	{
+		this.lifeContainer.innerHTML = "Lives: "+this.extraLives;;
+	}
+
 /*
 ████████╗ ██████╗ ██████╗     ███████╗ ██████╗ ██████╗ ██████╗ ███████╗███████╗
 ╚══██╔══╝██╔═══██╗██╔══██╗    ██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝
@@ -599,6 +651,47 @@ class pacman
 		this.recordInput.style.visibility = "hidden";
 		this.recordButton.style.visibility = "hidden";
 		this.stateMachine.setGameOver(this.topPlayers);
+	}
+
+/*
+██████╗ ███████╗███████╗███████╗████████╗
+██╔══██╗██╔════╝██╔════╝██╔════╝╚══██╔══╝
+██████╔╝█████╗  ███████╗█████╗     ██║   
+██╔══██╗██╔══╝  ╚════██║██╔══╝     ██║   
+██║  ██║███████╗███████║███████╗   ██║   
+╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝   
+*/
+
+	reset()
+	{
+		for (var i = 0; i<this.enemyArray.length;i++)
+		{
+			var enemy = this.enemyArray[i]
+			enemy.character.x = enemy.character.originX;
+			enemy.character.y = enemy.character.originY;
+			enemy.isDead = false;
+			enemy.vulnerable = 0;
+			enemy.outOfCage = false;
+			enemy.delay = enemy.defaultDelay;
+			enemy.clearData();
+		}
+
+		for (var i = 0; i < this.currentLevelBonuses.length; i++)
+		{
+			var bonus = this.currentLevelBonuses[i];
+			if (!bonus.spawnsAtStart)
+			{
+				this.renderer.removeBonusSprite(i,true)
+				bonus.timeToSpawn = bonus.spawns;
+				bonus.isOnField = false;
+			}
+		}
+
+		this.player.x = this.player.originX;
+		this.player.y = this.player.originY;
+		this.newDirection = -1;
+		this.newdx = 0;
+		this.newdy = 0;
 	}
 
 /*
@@ -680,7 +773,7 @@ class pacman
 		else
 		{
 			this.stateMachine.setPlayerDied();
-			this.lifeContainer.innerHTML = "Lives: "+this.extraLives;
+			this.updateLives();
 		}
 	}
 
@@ -692,26 +785,6 @@ class pacman
 	handleFinishedResetting()
 	{
 		this.stateMachine.setReadyScreen();
-	}
-
-	reset()
-	{
-		for (var i = 0; i<this.enemyArray.length;i++)
-		{
-			var enemy = this.enemyArray[i]
-			enemy.character.x = enemy.character.originX;
-			enemy.character.y = enemy.character.originY;
-			enemy.isDead = false;
-			enemy.vulnerable = 0;
-			enemy.outOfCage = false;
-			enemy.delay = enemy.defaultDelay;
-			enemy.clearData();
-		}
-		this.player.x = this.player.originX;
-		this.player.y = this.player.originY;
-		this.newDirection = -1;
-		this.newdx = 0;
-		this.newdy = 0;
 	}
 
 	readyScreen(event)
@@ -754,5 +827,26 @@ class pacman
 		this.pauseButton.style.visibility = "hidden";
 		this.scoreContainer.innerHTML = "";
 		this.lifeContainer.innerHTML = "";
+	}
+
+	generateRandomLocationForBonus(bonus)
+	{
+		var hight = this.currentLevel.length - 1;
+		var width = this.currentLevel[0].length - 1;
+		var y = getRandomInt(0, hight);
+		var x = getRandomInt(0, width);
+		while (this.currentLevel[y][x] != 0)
+		{
+			x = getRandomInt(0, width);
+			y = getRandomInt(0, hight);
+		}
+
+		bonus.x = x;
+		bonus.y = y;
+
+		function getRandomInt(min, max) 
+		{
+		    return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
 	}
 }

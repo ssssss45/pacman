@@ -684,10 +684,10 @@ class pacmanRenderer
 		this.gameCanvas.stage.addChild(bonus.sprite);
 	}
 
-	removeBonusSprite(id)	
+	removeBonusSprite(id, noSound)	
 	{
 		this.currentLevelBonuses[id].sprite.destroy();
-		this.bonusSound.play();
+		if (noSound) {this.bonusSound.play();}
 	}
 
 /*
