@@ -100,7 +100,6 @@ class pacman
 		addKeyToController("right",[39],this.keycon);
 		addKeyToController("up",[38],this.keycon);
 		addKeyToController("down",[40],this.keycon);
-		addKeyToController("d",[88],this.keycon);
 
 		//слушатели на события контроллера
 		this.canvas.addEventListener("controls:activate",
@@ -177,8 +176,6 @@ class pacman
 			case "right": this.rightActive = false; break;
 			case "down": this.downActive = false; break;
 			case "up": this.upActive = false; break;
-			case "x": this.currentLevelFood = 1; break;
-			case "d": this.playerDeath(); break;
 		}
 		
 	}
@@ -435,7 +432,7 @@ class pacman
 					if (delay != undefined)
 					{
 						current.clearData();
-						current.delay += delay + 1;
+						current.delay += delay;
 					}
 				}
 			}
@@ -504,11 +501,11 @@ class pacman
 						{
 							if (currentEnemy.vulnerable > 0)
 							{
-								var result = this.currentLevelFood - currentEnemy.escape(this.currentLevel, this.player.x, this.player.y);
+								var result = currentEnemy.escape(this.currentLevel, this.player.x, this.player.y);
 							}
 							else
 							{
-								var result = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
+								var result = currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
 							}
 							 
 							if (result == 1){this.currentLevelFood -= result;}
