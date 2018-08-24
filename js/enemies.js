@@ -201,7 +201,6 @@ class enemy
 
 		if(this.lastPlayerX == undefined)
 		{
-			console.log("slides");
 			return func(level);
 		}
 		else
@@ -209,7 +208,6 @@ class enemy
 			if (escape == undefined)
 			{
 				return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
-				console.log("moving");
 			}
 			else
 			{

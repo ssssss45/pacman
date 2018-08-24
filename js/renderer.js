@@ -9,6 +9,7 @@ class pacmanRenderer
 		this.spriteSheetHightSprites = params.spriteSheetHightSprites;
 		this.enemies = params.enemies;
 		this.startExtraLives = params.startExtraLives;
+		this.bonuses = params.bonuses;
 		
 		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
 		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
@@ -165,6 +166,16 @@ class pacmanRenderer
 			fillTextureArray(enemy.vulnerableSpriteLocations, this.enemyTextures[enemy.location].vulnerableSprites, this) ;
 		}
 
+		//текстуры бонусов
+		for (var i = 0; i < this.bonuses.length; i++)
+		{
+			var bonus = this.bonuses[i];
+			bonus.texture = new PIXI.Texture(
+	          		texture,
+	          		new PIXI.Rectangle(this.spriteWidth * bonus.textureLocation.y + this.spriteSheetBorderLeft, this.spriteHight * bonus.textureLocation.x + this.spriteSheetBorderTop, this.spriteWidth, this.spriteHight)
+	        		);
+		}
+
 		function fillTextureArray(list, array, currThis)
 		{
 			for (var i = 0; i < list.length; i++)
@@ -293,6 +304,16 @@ class pacmanRenderer
 	//отрисовка уровня
 	draw(levelNo)
 	{
+		//добавление  бонусов текущего уровня в массив
+		this.currentLevelBonuses = [];
+		for (var i = 0; i < this.bonuses.length; i++)
+		{
+			if (this.bonuses[i].existsOnLevels.includes(levelNo))
+			{
+				this.currentLevelBonuses.push(this.bonuses[i]);
+			}
+		}
+
 		this.buttonSound.play();
 		this.scoresSong.stop();
 		if (this.gameSong != undefined)
@@ -337,13 +358,13 @@ class pacmanRenderer
 						return result;
 					}
 					
-					if (sum==90)
+					if (sum == 90)
 					{
 						var texture;
-						if (!check(level,i-1,j+1)) texture = 18;
-						if (!check(level,i-1,j-1)) texture = 10;
-						if (!check(level,i+1,j-1)) texture = 72;
-						if (!check(level,i+1,j+1)) texture = 80;
+						if (!check(level, i - 1, j + 1)) texture = 18;
+						if (!check(level, i - 1, j - 1)) texture = 10;
+						if (!check(level, i + 1, j - 1)) texture = 72;
+						if (!check(level, i + 1, j + 1)) texture = 80;
 						
 						var sprite = new PIXI.Sprite(this.wallTextures[texture]);	
 					}
@@ -352,8 +373,8 @@ class pacmanRenderer
 						var sprite = new PIXI.Sprite(this.wallTextures[sum]);	
 					}
 
-					sprite.x = j*this.blockWidth;
-					sprite.y = i*this.blockHight;
+					sprite.x = j * this.blockWidth;
+					sprite.y = i * this.blockHight;
 					sprite.width = this.blockWidth;
 					sprite.height = this.blockHight;
 					sprite.alpha = 0;
@@ -480,9 +501,9 @@ class pacmanRenderer
 		{
 			for (var i = 0; i < this.gameCanvas.stage.children.length; i++)
 				{
-					if(this.gameCanvas.stage.children[i].notDestroy == undefined)this.gameCanvas.stage.children[i].alpha = repeats/10;
+					if(this.gameCanvas.stage.children[i].notDestroy == undefined)this.gameCanvas.stage.children[i].alpha = repeats / 10;
 				}
-			repeats--;
+			repeats --;
 			if (repeats > 0)
 			{
 				setTimeout(boundAnimate, 10);
@@ -496,7 +517,7 @@ class pacmanRenderer
 		function destroy()
 		{
 			var i = 0;
-			while (this.gameCanvas.stage.children.length>i)
+			while (this.gameCanvas.stage.children.length > i)
 			{
 				if (this.gameCanvas.stage.children[i].notDestroy == true)
 				{
@@ -579,8 +600,14 @@ class pacmanRenderer
 			}
 		}
 	}
-
-	//уничтожение спрайта (при "съедении")
+/*
+██████╗ ███████╗███████╗████████╗    ███████╗██████╗ ██████╗ ██╗████████╗███████╗
+██╔══██╗██╔════╝██╔════╝╚══██╔══╝    ██╔════╝██╔══██╗██╔══██╗██║╚══██╔══╝██╔════╝
+██║  ██║█████╗  ███████╗   ██║       ███████╗██████╔╝██████╔╝██║   ██║   █████╗  
+██║  ██║██╔══╝  ╚════██║   ██║       ╚════██║██╔═══╝ ██╔══██╗██║   ██║   ██╔══╝  
+██████╔╝███████╗███████║   ██║██╗    ███████║██║     ██║  ██║██║   ██║   ███████╗
+╚═════╝ ╚══════╝╚══════╝   ╚═╝╚═╝    ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝
+*/
 	destroySprite(x,y)
 	{
 		if (this.currentLevel[x][y] == 2)
@@ -637,7 +664,41 @@ class pacmanRenderer
 		}
 	}
 
-	//возвращение канваса игры
+/*
+██████╗        ███████╗██████╗ ██████╗ ██╗████████╗███████╗
+██╔══██╗       ██╔════╝██╔══██╗██╔══██╗██║╚══██╔══╝██╔════╝
+██████╔╝       ███████╗██████╔╝██████╔╝██║   ██║   █████╗  
+██╔══██╗       ╚════██║██╔═══╝ ██╔══██╗██║   ██║   ██╔══╝  
+██████╔╝██╗    ███████║██║     ██║  ██║██║   ██║   ███████╗
+╚═════╝ ╚═╝    ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝
+*/
+
+	spawnBonusSprite(x,y,id)	
+	{
+		var bonus = this.currentLevelBonuses[id];
+		bonus.sprite = new PIXI.Sprite(bonus.texture);
+		bonus.sprite.x = x * this.blockWidth;
+		bonus.sprite.y = y * this.blockHight;
+		bonus.sprite.width = this.blockWidth;
+		bonus.sprite.height = this.blockHight;
+		this.gameCanvas.stage.addChild(bonus.sprite);
+	}
+
+	removeBonusSprite(id)	
+	{
+		this.currentLevelBonuses[id].sprite.destroy();
+		this.bonusSound.play();
+	}
+
+/*
+██████╗ ███████╗████████╗██╗   ██╗██████╗ ███╗   ██╗
+██╔══██╗██╔════╝╚══██╔══╝██║   ██║██╔══██╗████╗  ██║
+██████╔╝█████╗     ██║   ██║   ██║██████╔╝██╔██╗ ██║
+██╔══██╗██╔══╝     ██║   ██║   ██║██╔══██╗██║╚██╗██║
+██║  ██║███████╗   ██║   ╚██████╔╝██║  ██║██║ ╚████║
+╚═╝  ╚═╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
+*/
+
 	returnContainer()
 	{
 		return this.gameCanvas.view;
@@ -772,10 +833,10 @@ class pacmanRenderer
 	}
 
 /*
-██╗    ██╗██╗     ███████╗ ██████╗ ██████╗ ███╗   ███╗███████╗
-██║    ██║██║     ██╔════╝██╔════╝██╔═══██╗████╗ ████║██╔════╝
-██║ █╗ ██║██║     █████╗  ██║     ██║   ██║██╔████╔██║█████╗  
-██║███╗██║██║     ██╔══╝  ██║     ██║   ██║██║╚██╔╝██║██╔══╝  
+██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗
+██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝
+██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  
+██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  
 ╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗
  ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝
 */
@@ -875,7 +936,6 @@ class pacmanRenderer
 	{
 		this.readyScreenText.alpha = 0;
 		this.pauseBox.alpha = 0;	
-		console.log("111");
 	}
 
 	idleHandler()
@@ -948,6 +1008,7 @@ class pacmanRenderer
 		this.deathSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/death.wav"]);
 		this.ozvSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/ozv.wav"]);
 		this.gameOverSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameOver.wav"]);
+		this.bonusSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/bonus.wav"]);
 		var event = new CustomEvent("Pacman: loading finished");
 		this.loadingText.visible = false;
 		document.dispatchEvent(event);

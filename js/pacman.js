@@ -17,6 +17,7 @@ class pacman
 		this.enemies = params.enemies;
 		this.ticksVulnerable = params.ticksVulnerable || 100;
 		this.startExtraLives = params.startExtraLives || 2;
+		this.bonuses = params.bonuses;
 
 		//добавление элементов управления
 		var startPlace = params.hight * 0.9;
@@ -74,7 +75,8 @@ class pacman
 			"playerSpritesLocations" : params.playerSpritesLocations,
 			"playerDeathSpritesLocations" : params.playerDeathSpritesLocations,
 			"container" : "pacman-container",
-			"enemies" : this.enemies
+			"enemies" : this.enemies,
+			"bonuses" : this.bonuses
 		});
 
 		//задание переменных которые понадобятся при создании уровня и игре
@@ -196,7 +198,7 @@ class pacman
 		this.score = 0;
 		this.scoreContainer.innerHTML="Score: 0";
 		this.extraLives = this.startExtraLives;
-		this.lifeContainer.innerHTML="Lives: "+this.extraLives;
+		this.lifeContainer.innerHTML="Lives: " + this.extraLives;
 		this.currentLevelNumber = -1;
 		this.stateMachine.setReadyScreen();
 	}
@@ -223,15 +225,27 @@ class pacman
 		{
 			this.currentLevelNumber = 0;
 		}
+		this.renderer.boundDraw(this.currentLevelNumber);
+
+		this.currentLevelBonuses = [];
+		for (var i = 0; i < this.bonuses.length; i++)
+		{
+			if (this.bonuses[i].existsOnLevels.includes(this.currentLevelNumber))
+			{
+				var bonus = new Bonus(this.bonuses[i].params);
+				this.currentLevelBonuses.push(bonus);
+			}
+		}
 
 		this.currentLevelFood = 0;
 
 		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.currentLevelNumber]));
 		this.currentLevel[this.currentLevel.length] = [];
-		for (var i = 0; i<this.currentLevel.length;i++)
+		for (var i = 0; i < this.currentLevel.length; i++)
 		{
-			for (var j = 0; j<this.currentLevel[0].length;j++)
+			for (var j = 0; j < this.currentLevel[0].length; j++)
 			{
+				//создание объекта игрока
 				var item = this.currentLevel[i][j];
 				if (item == 6)
 				{
@@ -247,9 +261,10 @@ class pacman
 							"id" : 6
 							});
 				}
+				//создание объектов противников
 				if (item > 6)
 				{
-					var enem;
+					var enem = undefined;
 
 					for (var k = 0; k < this.enemies.length; k++)
 					{
@@ -262,33 +277,46 @@ class pacman
 
 					if (enem != undefined)
 					{
-							var currentEnemy = new enemy({
-								"isPlayer" : false,
-								"x" : j,
-								"y" : i,
-								"originX" : j,
-								"originY" : i,
-								"renderer" : this.renderer,
-								"eatsDots" : enem.eatsDots,
-								"killsPlayer" : enem.killsPlayer,
-								"moveType" : enem.moveType,
-								"canBeVulnerable" : enem.canBeVulnerable,
-								"delay" : enem.delay,
-								"respawnDelay" : enem.respawnDelay,
-								"scoreForDeath" : enem.scoreForDeath,
-								"id" : item,
-								"idleMode" : enem.idleMode,
-								"locationDistance" : enem.locationDistance
-								});
+						var currentEnemy = new enemy({
+							"isPlayer" : false,
+							"x" : j,
+							"y" : i,
+							"originX" : j,
+							"originY" : i,
+							"renderer" : this.renderer,
+							"eatsDots" : enem.eatsDots,
+							"killsPlayer" : enem.killsPlayer,
+							"moveType" : enem.moveType,
+							"canBeVulnerable" : enem.canBeVulnerable,
+							"delay" : enem.delay,
+							"respawnDelay" : enem.respawnDelay,
+							"scoreForDeath" : enem.scoreForDeath,
+							"id" : item,
+							"idleMode" : enem.idleMode,
+							"locationDistance" : enem.locationDistance
+							});
 						this.enemyArray.push(currentEnemy);
 					}
-				}
 
+					//запоминание координат появления бонусов если они есть
+					for (var k = 0; k < this.currentLevelBonuses.length; k++)
+					{
+
+						var bonus = this.currentLevelBonuses[k];
+						if (item == this.currentLevelBonuses[k].location)
+						{
+							bonus.x = j;
+							bonus.y = i;
+						}
+					}
+
+				}
+				//подсчет еды
 				if (item == 2)
 				{
 					this.currentLevelFood++; 
 				}
-
+				//запоминание точки выхода из клетки
 				if (item == -2)
 				{
 					this.outOfCagePoint.x = j;
@@ -296,11 +324,21 @@ class pacman
 				}
 			}
 		}
-		this.renderer.boundDraw(this.currentLevelNumber);
+		//создание бонусов в начале уровня
+		for (var k = 0; k < this.currentLevelBonuses.length; k++)
+		{
+			console.log(this.currentLevelBonuses[k].points);
+			var bonus = this.currentLevelBonuses[k];
+			if (bonus.spawnsAtStart)
+			{
+				this.renderer.spawnBonusSprite(bonus.x,bonus.y,k);
+			}
+		}
 		this.newDirection = -1;
 		this.newdx = 0;
 		this.newdy = 0;
 		this.moveTimer = 0;
+		console.log(this.enemyArray);
 	}
 /*
  ██████╗  █████╗ ███╗   ███╗███████╗███████╗████████╗███████╗██████╗ 
@@ -345,18 +383,11 @@ class pacman
 
 		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
 		{
-			var score = (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel)||0);
+			var score = (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel) || 0);
 			//если съеден озверин, то всем противникам которые могут быть уязвимы и живы выдается уязвимость
 			if (score == -1)
 			{
-				for (var i = 0; i < this.enemyArray.length; i++)
-				{	
-					var current = this.enemyArray[i];
-					if ((current.canBeVulnerable)&&(!current.character.isDead))
-					{
-						current.vulnerable = this.ticksVulnerable + 1;
-					}
-				}
+				addVulnerability(this.enemyArray, this.ticksVulnerable);
 			}
 			//если съедена точка то начисляются очки
 			else
@@ -366,8 +397,41 @@ class pacman
 			}
 			this.moveTimer = -40;
 
-			var minDistanceToEnemy = this.currentLevel.length;
+			//проверка не съедение бонуса
+			for (var i = 0; i < this.currentLevelBonuses.length; i++)
+			{	
 
+				var current = this.currentLevelBonuses[i];
+				if ((current.isOnField) && (this.player.x == current.x) && (this.player.y == current.y))
+				{
+					this.renderer.removeBonusSprite(i);
+					current.isOnField = false;
+					addVulnerability(this.enemyArray, current.ozv);
+					this.score += current.points;
+				}
+			}
+
+			function addVulnerability (enemyArray, amount)
+			{
+				for (var i = 0; i < enemyArray.length; i++)
+				{	
+					var current = enemyArray[i];
+					if ((current.canBeVulnerable) && (!current.character.isDead))
+					{
+						current.vulnerable += amount + 1;
+					}
+				}
+			}
+
+/*
+███████╗███╗   ██╗███████╗███╗   ███╗       ███╗   ███╗ ██████╗ ██╗   ██╗███████╗
+██╔════╝████╗  ██║██╔════╝████╗ ████║       ████╗ ████║██╔═══██╗██║   ██║██╔════╝
+█████╗  ██╔██╗ ██║█████╗  ██╔████╔██║       ██╔████╔██║██║   ██║██║   ██║█████╗  
+██╔══╝  ██║╚██╗██║██╔══╝  ██║╚██╔╝██║       ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝  
+███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗
+╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝
+*/
+			var minDistanceToEnemy = this.currentLevel.length;
 			for (var i = 0; i < this.enemyArray.length; i++)
 			{	
 				var currentEnemy = this.enemyArray[i];
@@ -376,7 +440,7 @@ class pacman
 				var pastY = currentEnemy.character.y;
 
 				//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
-				if ((currentEnemy.isDead)&&(currentEnemy.character.x == currentEnemy.character.originX)&&(currentEnemy.character.y == currentEnemy.character.originY))
+				if ((currentEnemy.isDead) && (currentEnemy.character.x == currentEnemy.character.originX) && (currentEnemy.character.y == currentEnemy.character.originY))
 				{
 					currentEnemy.isDead = false;
 					currentEnemy.delay = currentEnemy.respawnDelay;
@@ -426,7 +490,7 @@ class pacman
 								var result = this.currentLevelFood - currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
 							}
 							 
-							if (result == 1){this.currentLevelFood += result;}
+							if (result == 1){this.currentLevelFood -= result;}
 						}
 					}
 					else
@@ -442,7 +506,7 @@ class pacman
 						{
 							currentEnemy.vulnerable = 0;
 							currentEnemy.setDead();
-							this.score +=currentEnemy.scoreForDeath;
+							this.score += currentEnemy.scoreForDeath;
 							currentEnemy.outOfCage = false;
 							currentEnemy.clearData();
 						}
@@ -457,6 +521,25 @@ class pacman
 					}
 				}
 				this.renderer.switchGameSongSpeed(minDistanceToEnemy);
+			}
+/*
+██████╗  ██████╗ ███╗   ██╗██╗   ██╗███████╗███████╗███████╗
+██╔══██╗██╔═══██╗████╗  ██║██║   ██║██╔════╝██╔════╝██╔════╝
+██████╔╝██║   ██║██╔██╗ ██║██║   ██║███████╗█████╗  ███████╗
+██╔══██╗██║   ██║██║╚██╗██║██║   ██║╚════██║██╔══╝  ╚════██║
+██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║███████╗███████║
+╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
+*/
+		for (var i = 0; i < this.currentLevelBonuses.length; i ++)
+			{
+				var bonus = this.currentLevelBonuses[i];
+				//если у бонуса есть таймер до появления то уменьшаем его
+				if (bonus.timeToSpawn > 0) {bonus.timeToSpawn --}
+				//если таймер дошёл до нуля и spawns!=0 то создаем бонус
+
+				//если у бонуса есть локация то генерируем его туда
+
+				//если нет то генерируем случайное метоположение где нет ничего
 			}
 		}
 
@@ -637,7 +720,6 @@ class pacman
 		{
 			this.nextLevel();
 		}
-		
 	}
 
 	handleLevelClear()
