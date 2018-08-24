@@ -201,53 +201,57 @@ class enemy
 
 		if(this.lastPlayerX == undefined)
 		{
+			console.log("slides");
 			return func(level);
 		}
 		else
 		{
 			if (escape == undefined)
-				{
-					return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
-				}
-				else
+			{
+				return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				console.log("moving");
+			}
+			else
+			{
+				if (result != undefined)
 				{
 					this.dx *= -1;
 					this.dy *= -1;
+				}
 
-					if(level[this.character.y + this.dy][this.character.x + this.dx] == 1)
+				if(level[this.character.y + this.dy][this.character.x + this.dx] == 1)
+				{
+					this.lastPlayerX = undefined;
+					this.lastPlayerY = undefined;
+
+					if (this.character.y == playerY)
 					{
-						this.lastPlayerX = undefined;
-						this.lastPlayerY = undefined;
-
-						if (this.character.y == playerY)
+						this.dx = 0;
+						if (level[this.character.y + 1][this.character.x] == 1) 
 						{
-							console.log("y");
-							this.dx = 0;
-							if (level[this.character.y + 1][this.character.x] == 1) 
-							{
-								this.dy = -1;
-							}
-							else
-							{
-								this.dy = 1;
-							}
+							this.dy = -1;
 						}
 						else
 						{
-							this.dy = 0;
-							if (level[this.character.y][this.character.x + 1] == 1) 
-							{
-								this.dx = -1;
-							}
-							else
-							{
-								this.dx = 1;
-							}
+							this.dy = 1;
 						}
 					}
+					else
+					{
+						this.dy = 0;
+						if (level[this.character.y][this.character.x + 1] == 1) 
+						{
+							this.dx = -1;
+						}
+						else
+						{
+							this.dx = 1;
+						}
+					}
+				}
 
-					this.direction = this.getDirectionFromDxDy(this.dx,this.dy)
-					return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				this.direction = this.getDirectionFromDxDy(this.dx,this.dy)
+				return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
 				}
 		}
 
@@ -552,7 +556,6 @@ class enemy
 
 	idle(level)
 	{
-		console.log("???");
 		if ((this.character.x == this.character.originX) &&  (this.character.y == this.character.originY))
 		{
 			var direction = this.getDirectionFromDxDy(this.idleDX, this.idleDY);
