@@ -25,11 +25,11 @@ class character
 		this.playerMovedEvent = new CustomEvent("Pacman: player moved");
 	}
 
-	move (dx, dy, direction, level, isDead, vulnerable, outOfCage)
+	move (dx, dy, direction, level, vulnerable, state)
 	{
 		var score = 0;
 
-		function check(dx, dy, level, isPlayer, outOfCage)
+		function check(dx, dy, level, isPlayer, state)
 		{
 			if (level[dx] == undefined) return true;
 			if (isPlayer)
@@ -38,13 +38,13 @@ class character
 			}
 			else
 			{
-				if (!outOfCage)
+				if ((state == "caged") || (state == "leaving")||(state == "dead"))
 				{
-					return level[dx][dy] != 1;	
+					return (level[dx][dy] != 1);	
 				}
 				else
 				{
-					return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));		
+					return ((level[dx][dy]!= -3) && (level[dx][dy] != 1) && (level[dx][dy] != 5) && (level[dx][dy] != 4));		
 				}
 			}
 		}
@@ -66,14 +66,14 @@ class character
 			}
 		}
 
-		if (check(this.y + dy, this.x + dx, level, this.isPlayer, outOfCage)) 
+		if (check(this.y + dy, this.x + dx, level, this.isPlayer, state)) 
 		{
 			this.dx = dx;
 			this.dy = dy;
 			this.direction = direction
 		}
 
-		if((check(this.y + this.dy, this.x + this.dx, level, this.isPlayer, outOfCage)) && (this.direction != -1))
+		if((check(this.y + this.dy, this.x + this.dx, level, this.isPlayer, state)) && (this.direction != -1))
 		{
 			if (this.isPlayer)
 				{
@@ -81,7 +81,7 @@ class character
 				}
 
 			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx, level, this.renderer, this.isPlayer);
-			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, vulnerable, isDead);
+			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, vulnerable, state);
 			this.x = this.x + this.dx;
 			this.y = this.y + this.dy;
 			if(this.x < 0){this.x = level[0].length - 1}

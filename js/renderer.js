@@ -527,7 +527,7 @@ class pacmanRenderer
 ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
 */
 	//движение спрайта
-	renderMovement(x, y, dx, dy ,direction, id, vulnerable, isDead)
+	renderMovement(x, y, dx, dy ,direction, id, vulnerable, state)
 	{
 		var sprite = this.interactiveSprites[id];
 		var level = this.currentLevel;
@@ -542,7 +542,7 @@ class pacmanRenderer
 		
 		sprite.visible = visibilityMarker;
 		this.animateChar(x, y, dx * this.blockWidth, dy * this.blockHight, sprite);
-		this.upateSpriteTexture(id, direction, vulnerable, isDead);
+		this.upateSpriteTexture(id, direction, vulnerable, state);
 	}
 /*
  ██████╗██╗  ██╗ █████╗ ██████╗     ████████╗███████╗██╗  ██╗   
@@ -553,7 +553,7 @@ class pacmanRenderer
  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝
 */
 	//обновление текстуры спрайта
-	upateSpriteTexture(id, direction, vulnerable, isDead, delay)
+	upateSpriteTexture(id, direction, vulnerable, state, delay)
 	{
 		var sprite = this.interactiveSprites[id];
 		//поворот спрайта игрока
@@ -572,7 +572,7 @@ class pacmanRenderer
 			//полупрозрачность для парализованых противников
 			if (delay != undefined)
 			{
-				if ((delay > 7) || (delay%2 == 1))
+				if ((delay > 7) || (delay%2 == 0))
 				{
 					sprite.alpha = 0.5;	
 				}
@@ -593,7 +593,7 @@ class pacmanRenderer
 			}
 			else
 			{	//установка "мертвого" спрайта
-				if (isDead)
+				if (state == "dead")
 				{
 					sprite.alpha = 1;
 					setSprite(sprite, sprite.enemyTextures.deadSprites, direction);

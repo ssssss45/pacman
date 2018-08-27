@@ -47,21 +47,12 @@ class enemy
 			this.idleDY = idleDir.dy;
 		}
 
-		switch (params.moveType)
-		{
-			case 0: this.move = this.randomMovement; break;
-			case 1: this.move = this.ifSeenRandom; break;
-			case 2: this.move = this.aStar; break;
-			case 3: this.move = this.randomSlider; break;
-			case 4: this.move = this.ifSeenSlider; break;
-			case 5: this.move = this.locatorRandom; break;
-			case 6: this.move = this.locatorSlider; break;
-			case 7: this.move = this.locateSeeRandom; break;
-			case 8: this.move = this.locateSeeSlider; break;
-		}
+		this.moveTypeArray = [this.randomMovement, this.ifSeenRandom, this.aStar, this.randomSlider, this.ifSeenSlider, this.locatorRandom, this.locatorSlider, this.locateSeeRandom, this.locateSeeSlider];
 
-		this.deadMove = this.aStar;
-		this.outOfCage = false;
+		this.defaultMove = this.moveTypeArray[params.moveType];
+
+		this.reset();
+		
 		this.scoreForDeath = params.scoreForDeath;
 
 		this.boundFollow = this.followIfSeen.bind(this);
@@ -106,7 +97,7 @@ class enemy
 			{
 				flag = true;
 				this.direction = direction;
-				return this.character.move(dir.dx,dir.dy,direction,level,this.isDead,this.vulnerable, this.outOfCage);
+				return this.character.move(dir.dx,dir.dy,direction,level,this.vulnerable,this.state);
 			}
 			else
 			{
@@ -130,7 +121,7 @@ class enemy
 */
 	randomSlider(level)
 	{
-		while (true)
+		for (var i = 0; i < 5; i++)
 		{
 			var x = this.character.x;
 			var y = this.character.y;
@@ -139,7 +130,7 @@ class enemy
 			var cell = level[y + dir.dy][x + dir.dx];
 			if((cell != 1) && (cell != 4) && (cell != 5))
 			{
-				return this.character.move(dir.dx, dir.dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				return this.character.move(dir.dx, dir.dy, this.character.direction, level,this.vulnerable,this.state);
 			}
 			this.character.direction = this.getRandomInt(0,3);
 		}
@@ -206,7 +197,7 @@ class enemy
 		{
 			if (escape == undefined)
 			{
-				return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				return this.character.move(this.dx, this.dy, this.direction, level,this.vulnerable,this.state);
 			}
 			else
 			{
@@ -248,7 +239,7 @@ class enemy
 				}
 
 				this.direction = this.getDirectionFromDxDy(this.dx,this.dy)
-				return this.character.move(this.dx, this.dy, this.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+				return this.character.move(this.dx, this.dy, this.direction, level,this.vulnerable,this.state);
 			}
 		}
 
@@ -330,11 +321,11 @@ class enemy
 		var distance = Math.sqrt(x*x+y*y);
 		if (distance < this.locationDistance)
 		{
-			this.aStar(level, playerX, playerY);
+			return this.aStar(level, playerX, playerY);
 		}
 		else
 		{
-			func(level, playerX, playerY);	
+			return func(level, playerX, playerY);	
 		}
 	}
 
@@ -365,9 +356,27 @@ class enemy
 ██║  ██║  ╚═╝ 
 ╚═╝  ╚═╝                
 */
-	aStar(level, playerX, playerY)
+	aStar(level, playerX, playerY, outCageX, outCageY)
 	{
-		var path = findPath(level, [this.character.y,this.character.x], [playerY, playerX]);
+		if (this.state == "free")
+		{
+			var x = playerX;
+			var y = playerY;
+		}
+
+		if (this.state == "dead")
+		{
+			var x = this.character.originX;
+			var y = this.character.originY;
+		}
+
+		if (this.state == "leaving")
+		{
+			var x = outCageX;
+			var y = outCageY;
+		}
+
+		var path = findPath(level, [this.character.y,this.character.x], [y, x]);
 
 		if (path[1] != undefined)
 		{
@@ -381,7 +390,7 @@ class enemy
 		}
 		this.character.direction = this.getDirectionFromDxDy(dx,dy);
 
-		return this.character.move(dx, dy, this.character.direction, level,this.isDead,this.vulnerable, this.outOfCage);
+		return this.character.move(dx, dy, this.character.direction, level, this.vulnerable, this.state);
 
 		function findPath(world, pathStart, pathEnd)
 		{
@@ -556,12 +565,12 @@ class enemy
 		if ((this.character.x == this.character.originX) &&  (this.character.y == this.character.originY))
 		{
 			var direction = this.getDirectionFromDxDy(this.idleDX, this.idleDY);
-			this.character.move(this.idleDX, this.idleDY, direction, level, this.isDead,this.vulnerable, this.outOfCage);
+			this.character.move(this.idleDX, this.idleDY, direction, level, this.vulnerable, this.state);
 		}
 		else
 		{
 			var direction = this.getDirectionFromDxDy(-this.idleDX, -this.idleDY);
-			this.character.move(-this.idleDX, -this.idleDY, direction, level, this.isDead,this.vulnerable, this.outOfCage);
+			this.character.move(-this.idleDX, -this.idleDY, direction, level, this.vulnerable, this.state);
 		}
 	}
 
@@ -632,4 +641,142 @@ class enemy
 	{
 	    return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
+
+/*
+███████╗████████╗ █████╗ ████████╗███████╗███████╗
+██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██╔════╝██╔════╝
+███████╗   ██║   ███████║   ██║   █████╗  ███████╗
+╚════██║   ██║   ██╔══██║   ██║   ██╔══╝  ╚════██║
+███████║   ██║   ██║  ██║   ██║   ███████╗███████║
+╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚══════╝
+*/
+
+	//состояние выхода из клетки
+	setLeaving()
+	{
+		this.state = "leaving";
+		this.move = this.aStar;
+	}
+	//состояние сидения в клетке
+	setCaged()
+	{
+		if (this.respawnDelay == 0)
+		{
+			this.setLeaving();
+		}
+		else
+		{
+			this.state = "caged";
+			this.move = this.idle;
+			this.delay = this.respawnDelay;	
+		}
+	}
+	//состояние смерти
+	setDead()
+	{
+		this.state = "dead";
+		this.move = this.aStar;
+	}
+	//состояние уязвимости
+	setVulnerable()
+	{
+		if ((this.state != "caged")&&(this.state != "paralyzed")) this.move = this.escape;
+		this.state = "vulnerable";
+	}
+	//состояние действия по заданому алгоритму поведения вне клетки
+	setFree()
+	{	
+		if (this.vulnerable > 1)
+		{
+			this.setVulnerable();
+		}
+		else
+		{
+			this.state = "free";
+			this.move = this.defaultMove;
+		}
+	}
+	//состояние парализованности
+	setParalyzed()
+	{
+		this.state = "paralyzed";
+		this.move = this.standInPlace;
+	}
+	//возвращение в клетку по смерти игрока
+	reset()
+	{
+		this.delay = this.defaultDelay;
+		if (this.delay > 0 )
+		{
+			this.move = this.idle;
+			this.state = "caged";
+		}
+		else
+		{
+			this.state = "leaving";
+			this.move = this.aStar;	
+		}
+		this.character.x = this.character.originX;
+		this.character.y = this.character.originY;
+		this.clearData();
+	}
+
+/*
+ ██████╗  ██████╗ 
+██╔════╝ ██╔═══██╗
+██║  ███╗██║   ██║
+██║   ██║██║   ██║
+╚██████╔╝╚██████╔╝
+ ╚═════╝  ╚═════╝
+*/
+	go(Level, playerX, playerY, outOfCagePointX, outOfCagePointY)
+	{
+		//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
+		if ((this.state == "dead") && (this.character.x == this.character.originX) && (this.character.y == this.character.originY))
+		{
+			this.setCaged();
+		}
+
+		//если противник уязвим то уменьшаем счетчик уязвимости
+		if (this.vulnerable > 0) 
+		{
+			if (this.vulnerable == 1)
+			{
+				this.clearData();
+				this.setFree();
+			}
+			this.vulnerable--;
+		}
+
+		if (this.delay > 0) 
+		{
+			if (this.delay == 1)
+			{
+				this.clearData();
+				this.setLeaving();
+			}
+			this.delay--;
+		}
+
+		if (!this.state == "dead")
+		{
+			var thisDistance = this.distanceToPlayer(this.player.x,this.player.y)
+			//подсчет минимального расстояния до игрока. нужен для изменения музыки
+			if (minDistanceToEnemy > thisDistance)
+			{
+				minDistanceToEnemy = thisDistance;
+			}
+		}
+
+		//проверка на то чт опротивник вышел из клетки. если нет то выходит используя алгоритм A*
+		if ((this.character.x == outOfCagePointX) && (this.character.y == outOfCagePointY) && (this.state == "leaving"))
+		{
+			this.setFree();
+		}
+
+		//движение противника
+		return this.move(Level, playerX, playerY, outOfCagePointX, outOfCagePointY);;
+	}
 }
+
+	

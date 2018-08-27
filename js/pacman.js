@@ -91,7 +91,6 @@ class pacman
 		document.addEventListener("Pacman: resetting", this.reset.bind(this));
 		document.addEventListener("Pacman: resetting finished", this.handleFinishedResetting.bind(this));
 		document.addEventListener("Pacman: level clear", this.handleLevelClear.bind(this));
-		document.addEventListener("visibilitychange", this.tabChanged.bind(this));
 		document.addEventListener("Pacman: loading finished", this.loadingFinishedHandler.bind(this));
 
 		//функция передачи кнопок в контроллер
@@ -408,27 +407,20 @@ class pacman
 				for (var i = 0; i < enemyArray.length; i++)
 				{	
 					var current = enemyArray[i];
-					if ((current.canBeVulnerable) && (!current.isDead) && (amount != undefined))
+					if ((current.canBeVulnerable) && (!current.isDead) && (amount != undefined) && (amount > 0))
 					{
+						current.setVulnerable();
 						current.vulnerable += amount;
 					}
 
-					if ((delay != undefined) && (!current.isDead) && (current.outOfCage))
+					if ((delay > 0) && (delay != undefined) && (!current.isDead) && ((current.state == "free")||(current.state == "vulnerable")))
 					{
 						current.clearData();
+						current.setParalyzed();
 						current.delay += delay;
 					}
 				}
 			}
-
-/*
-███████╗███╗   ██╗███████╗███╗   ███╗       ███╗   ███╗ ██████╗ ██╗   ██╗███████╗
-██╔════╝████╗  ██║██╔════╝████╗ ████║       ████╗ ████║██╔═══██╗██║   ██║██╔════╝
-█████╗  ██╔██╗ ██║█████╗  ██╔████╔██║       ██╔████╔██║██║   ██║██║   ██║█████╗  
-██╔══╝  ██║╚██╗██║██╔══╝  ██║╚██╔╝██║       ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝  
-███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗
-╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝
-*/
 
 			var minDistanceToEnemy = this.currentLevel.length;
 			for (var i = 0; i < this.enemyArray.length; i++)
@@ -438,83 +430,12 @@ class pacman
 				var pastX = currentEnemy.character.x;
 				var pastY = currentEnemy.character.y;
 
-				//проверка на то что противник мёртв и достиг начальной точки. если true то он "воскресает"
-				if ((currentEnemy.isDead) && (currentEnemy.character.x == currentEnemy.character.originX) && (currentEnemy.character.y == currentEnemy.character.originY))
-				{
-					currentEnemy.isDead = false;
-					currentEnemy.delay = currentEnemy.respawnDelay;
-				}
-
-				//если противник уязвим то уменьшаем счетчик уязвимости
-				if (currentEnemy.vulnerable > 0) 
-				{
-					if (currentEnemy.vulnerable == 1)
-					{
-						currentEnemy.clearData();
-					}
-					currentEnemy.vulnerable--;
-				}
-				// если у противника есть задержка то либо обновляем его спрайт, либо двигаем его внутри клетки
-				if(currentEnemy.delay > 0)
-				{
-					currentEnemy.delay --;
-					if (!currentEnemy.outOfCage)
-					{
-						currentEnemy.idle(this.currentLevel);
-					}
-					else
-					{
-						currentEnemy.standInPlace(this.currentLevel);
-					}
-				}
-				else
-				{
-					
-					if (!currentEnemy.isDead)
-					{
-						var currentEnemyDistance = currentEnemy.distanceToPlayer(this.player.x,this.player.y)
-						//подсчет минимального расстояния до игрока. нужен для изменения музыки
-						if (minDistanceToEnemy > currentEnemyDistance)
-						{
-							minDistanceToEnemy = currentEnemyDistance;
-						}
-						//проверка на то чт опротивник вышел из клетки. если нет то выходит используя алгоритм A*
-						if (!currentEnemy.outOfCage)
-						{
-							if ((currentEnemy.character.x == this.outOfCagePoint.x)&&(currentEnemy.character.y == this.outOfCagePoint.y))
-							{
-								currentEnemy.outOfCage = true;
-							}
-							else
-							{
-								//выход из клетки
-								currentEnemy.deadMove(this.currentLevel, this.outOfCagePoint.x, this.outOfCagePoint.y);			
-							}
-						}
-						else
-						{
-							//если противнику уязвим то он пытается убежать
-							if (currentEnemy.vulnerable > 0)
-							{
-								var result = currentEnemy.escape(this.currentLevel, this.player.x, this.player.y);
-							}
-							else
-							{
-							//если нет то двигается нормально
-								var result = currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
-							}
-							 //если противник может есть точки то result будет равен 1
-							if (result == 1){this.currentLevelFood -= result;}
-						}
-					}
-					else
-					{	//движение в точку воскрешения, если противник мертв
-						currentEnemy.deadMove(this.currentLevel, currentEnemy.character.originX, currentEnemy.character.originY);
-					}
-				}
+				var result = currentEnemy.go(this.currentLevel, this.player.x, this.player.y, this.outOfCagePoint.x, this.outOfCagePoint.y) ;
+				//если противник может есть точки то result будет равен 1
+				if (result == 1){this.currentLevelFood -= result;}
 
 				//проверка на столкновение игрока и противника	
-				if (((this.player.x == currentEnemy.character.x)&&(this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
+				if (((this.player.x == currentEnemy.character.x) && (this.player.y == currentEnemy.character.y))||((this.player.x == pastX)&&(this.player.y == pastY)))
 				{
 					//если противник уязвим то он погибает
 					if (currentEnemy.vulnerable > 0) 
@@ -523,14 +444,13 @@ class pacman
 						currentEnemy.setDead();
 						this.score += currentEnemy.scoreForDeath;
 						this.updateScore("enemy");
-						currentEnemy.outOfCage = false;
 						currentEnemy.clearData();
 						currentEnemy.delay = 0;
 					}
 					//если нет, противник может есть игрока и жив, то погибает игрок
 					else
 					{
-						if((currentEnemy.killsPlayer == true) && (!currentEnemy.isDead))
+						if((currentEnemy.killsPlayer == true) && (currentEnemy.state!="dead"))
 						{
 							this.playerDeath()	
 						}
@@ -552,7 +472,7 @@ class pacman
 ██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║███████╗███████║
 ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 */
-		for (var i = 0; i < this.currentLevelBonuses.length; i ++)
+			for (var i = 0; i < this.currentLevelBonuses.length; i ++)
 			{
 				var bonus = this.currentLevelBonuses[i];
 				//если у бонуса есть таймер до появления то уменьшаем его
@@ -690,14 +610,7 @@ class pacman
 		//возвращение противников
 		for (var i = 0; i < this.enemyArray.length;i++)
 		{
-			var enemy = this.enemyArray[i]
-			enemy.character.x = enemy.character.originX;
-			enemy.character.y = enemy.character.originY;
-			enemy.isDead = false;
-			enemy.vulnerable = 0;
-			enemy.outOfCage = false;
-			enemy.delay = enemy.defaultDelay;
-			enemy.clearData();
+			this.enemyArray[i].reset();
 		}
 		//возвращение и удаление бонусов
 		for (var i = 0; i < this.currentLevelBonuses.length; i++)
@@ -726,11 +639,6 @@ class pacman
 ███████╗ ╚████╔╝██╗    ██║  ██║██║  ██║██║ ╚████║██████╔╝███████╗███████╗██║  ██║███████║
 ╚══════╝  ╚═══╝ ╚═╝    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝
 */
-
-	tabChanged()
-	{
-		if ((document.hidden)||(this.stateMachine.state!=3)) {this.stateMachine.setPause();}
-	}
 
 	pausePressed()
 	{

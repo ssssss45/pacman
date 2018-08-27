@@ -126,6 +126,7 @@ class PacmanSound
 
 	generateLoadedEvent()
 	{
+		
 		this.playerStep = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/walk.wav"]);
 		this.dotEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/dotEaten.wav"]);
 		this.enemyEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/eatEnemy.wav"]);
@@ -137,6 +138,7 @@ class PacmanSound
 		this.gameOverSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameOver.wav"]);
 		this.bonusSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/bonus.wav"]);
 		this.idle = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/idle.wav"]);
+		
 		var event = new CustomEvent("Pacman sound: loading finished");
 		document.dispatchEvent(event);
 		this.idle.play();
