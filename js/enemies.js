@@ -692,8 +692,15 @@ class enemy
 		}
 		else
 		{
-			this.state = "free";
-			this.move = this.defaultMove;
+			if (this.delay > 0)
+			{
+				this.setParalyzed()
+			}
+			else
+			{
+				this.state = "free";
+				this.move = this.defaultMove;
+			}
 		}
 	}
 	//состояние парализованности

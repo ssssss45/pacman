@@ -25,11 +25,12 @@ class PacmanSound
 		document.addEventListener("Pacman: game over", this.gameOverHandle.bind(this));
 		document.addEventListener("Pacman: player died", this.deathHandle.bind(this));
 		document.addEventListener("Pacman: score changed", this.handleUpdateScore.bind(this));
-		document.addEventListener("Pacman: enter high score", this.handleEnterName.bind(
+		document.addEventListener("Pacman: enter high score", this.gameSongStop.bind(
 			this));
 		document.addEventListener("Pacman: ozverin eaten", this.handleOzverin.bind(this));
 		document.addEventListener("Pacman: player moved", this.playerMovedHandle.bind(this));
 		document.addEventListener("Pacman: closest enemy to player", this.switchGameSongSpeed.bind(this));
+		document.addEventListener("Pacman: level clear", this.gameSongStop.bind(this));
 	}
 
 	handlePause(event)
@@ -68,6 +69,7 @@ class PacmanSound
 	handleReadyScreen()
 	{
 		this.idle.stop();
+		this.scoresSong.stop();
 	}
 
 	buttonHandle()
@@ -93,7 +95,7 @@ class PacmanSound
 		this.scoresSong.play();
 	}
 
-	handleEnterName()
+	gameSongStop()
 	{
 		this.gameSong.stop();
 	}
@@ -131,7 +133,9 @@ class PacmanSound
 		this.dotEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/dotEaten.wav"]);
 		this.enemyEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/eatEnemy.wav"]);
 		this.scoresSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/scores.wav"]);
+		this.scoresSong.loop = true;
 		this.gameSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameSong.wav"]);
+		this.gameSong.loop = true;
 		this.buttonSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/button.wav"]);
 		this.deathSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/death.wav"]);
 		this.ozvSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/ozv.wav"]);

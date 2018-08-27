@@ -385,6 +385,7 @@ class pacman
 					if (current.points != 0)
 					{
 						this.score += current.points;
+						this.renderer.displayScore(current.points, current.x,current.y)
 					}
 					this.updateScore("bonus");
 					//добавление жизней, уменьшение жизней до максимума если получилось больше, и передача количества отрисовщику (для звука конца игры)
