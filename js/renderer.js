@@ -2,6 +2,7 @@ class pacmanRenderer
 {
 	constructor(params)
 	{
+		//получение параметров
 		this.pathToSpriteSheet = params.pathToSpriteSheet; 
 		this.spriteSheetWidth = params.spriteSheetWidth;
 		this.spriteSheetHight = params.spriteSheetHight;
@@ -10,6 +11,11 @@ class pacmanRenderer
 		this.enemies = params.enemies;
 		this.startExtraLives = params.startExtraLives;
 		this.bonuses = params.bonuses;
+		this.gameWidth = params.width;
+		this.gameHight = params.hight;
+		this.playerSpritesLocations = params.playerSpritesLocations;
+		this.playerDeathSpritesLocations = params.playerDeathSpritesLocations;
+		this.container = document.getElementById(params.container);
 		
 		this.spriteSheetBorderLeft = params.spriteSheetBorderLeft || 0;
 		this.spriteSheetBorderTop = params.spriteSheetBorderTop || 0;
@@ -17,29 +23,32 @@ class pacmanRenderer
 		this.spriteHight = Math.round((this.spriteSheetHight - this.spriteSheetBorderTop - params.spriteSheetBorderBottom)/this.spriteSheetHightSprites);
 		this.spriteWidth = Math.round((this.spriteSheetWidth - this.spriteSheetBorderLeft - params.spriteSheetBorderRight)/this.spriteSheetWidthSprites);
 
-		this.gameWidth = params.width;
-		this.gameHight = params.hight;
-		this.bottomContainerHight = params.bottomContainerHight;
-		this.playerSpritesLocations = params.playerSpritesLocations;
-		this.playerDeathSpritesLocations = params.playerDeathSpritesLocations;
-		this.container = document.getElementById(params.container);
-
 		this.bitMask=[[1,2,4],[8,0,16],[32,64,128]];
-		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight + this.bottomContainerHight});
+		this.gameCanvas = new PIXI.Application({width: this.gameWidth, height: this.gameHight});
 		this.container.appendChild(this.gameCanvas.view);
 
+		//инициализация массивов
+		//текстуры игрока
 		this.playerTextures = [];
+		//текстуры смерти игрока
 		this.playerDeathTextures = [];
+		//спрайты противников
 		this.enemySprites = [];
+		//текстуры противников
 		this.enemyTextures = [];
+		//массив спрайтов (точки, озверин)
+		this.spriteArray = [];
+		//массив действующих спрайтов (игрок, противники)
+		this.interactiveSprites = [];
+		//массив спрайтов с очками (которые появляются при съедении противников и бонусов)
+		this.scoreSpriteArray = [];
 
+		//создание канвасов со спрайтами и стенами
 		this.createWallSheet();
 		this.loadSpriteSheet();
 
 		this.boundRenderMovement = this.renderMovement.bind(this)
 		this.boundDestroyLevel = this.destroyLevel.bind(this);
-
-		this.interactiveSprites = [];
 
 		//создание полупрозрачного экрана для паузы
 		var pauseTexture = 	new PIXI.Texture(
@@ -72,7 +81,6 @@ class pacmanRenderer
 		this.welcomePac.beginFill(0xFFFF00);
 		this.welcomePac.drawCircle(this.gameWidth/2,this.gameHight/3*2,this.gameHight/8);
 		this.welcomePac.notDestroy = true;
-
 		this.gameCanvas.stage.addChild(this.welcomePac);
 		this.gameCanvas.stage.addChild(this.welcomeText);
 
@@ -103,27 +111,9 @@ class pacmanRenderer
 			return text;
 		}
 
-		PIXI.loader
-			.add([
-				"resources/sounds/death.wav",
-				"resources/sounds/dotEaten.wav",
-				"resources/sounds/button.wav",
-				"resources/sounds/idle.wav",
-				"resources/sounds/gameSong.wav",
-				"resources/sounds/scores.wav",
-				"resources/sounds/walk.wav",
-				"resources/sounds/gameOver.wav",
-				"resources/sounds/ozv.wav",
-				"resources/sounds/enemyWalk.mp3",
-				"resources/sounds/eatEnemy.wav",
-				"resources/sounds/bonus.wav"
-				])
-			.load(this.generateLoadedEvent.bind(this))
-		this.scoreSpriteArray = [];
 		this.levels = params.levels;
 		this.boundDraw = this.draw.bind(this);
-		//массив спрайтов бонусов
-		this.spriteArray = [];
+
 		document.addEventListener("Pacman: game paused", this.pause.bind(this));
 		document.addEventListener("Pacman: game over", this.gameOver.bind(this));
 		document.addEventListener("Pacman: player died", this.animatePlayerDeath.bind(this));
@@ -146,6 +136,7 @@ class pacmanRenderer
 
 	loadSpriteSheet()
 	{
+		//заполнение канваса спрайтов спрайтшитом
 		this.spriteCanvas = new PIXI.Application({width: this.spriteSheetWidth, height: this.spriteSheetHight});
 		var texture = PIXI.Texture.fromImage(this.pathToSpriteSheet);
 		var spriteSheet = new PIXI.Sprite(texture);
@@ -314,17 +305,11 @@ class pacmanRenderer
 			}
 		}
 
-		this.buttonSound.play();
-		this.scoresSong.stop();
-		if (this.gameSong != undefined)
-		{
-			this.gameSong.stop();
-		}
-		this.startGameSong();
-		this.idleSound.stop();
+		//сокрытие экрана приветствия
 		this.welcomePac.visible = false;
 		clearInterval(this.idleAnimationInterval);
 		this.welcomeText.visible = false;
+
 		this.interactiveSprites = [];
 		this.levelNumber = levelNo;
 		this.currentLevel = JSON.parse(JSON.stringify(this.levels[this.levelNumber]));
@@ -482,14 +467,16 @@ class pacmanRenderer
 ██████╔╝███████╗███████║   ██║   ██║  ██║╚██████╔╝   ██║   
 ╚═════╝ ╚══════╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝    ╚═╝   
 */	
-
+	//стирание уровня
 	destroyLevel(toAnimate)
 	{
+		//остановка анимаций
 		for (var i = 0; i < this.interactiveSprites.length; i++)
 		{
 			if(this.interactiveSprites[i] != undefined) clearInterval(this.interactiveSprites[i].animInterval);
 		}
 
+		//"затухающая" анимация убирания уровня
 		var repeats = 10;
 		var boundAnimate = animate.bind(this);
 		var boundDestroy = destroy.bind(this);
@@ -513,7 +500,7 @@ class pacmanRenderer
 				boundDestroy();
 			}
 		}
-		
+		//функция, которая удаляет все спрайты с канваса, у которых нет метки о неудалении
 		function destroy()
 		{
 			var i = 0;
@@ -539,13 +526,14 @@ class pacmanRenderer
 ██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
 ╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
 */
-
+	//движение спрайта
 	renderMovement(x, y, dx, dy ,direction, id, vulnerable, isDead)
 	{
 		var sprite = this.interactiveSprites[id];
 		var level = this.currentLevel;
 		var visibilityMarker = true;
 
+		//проверка на то что спрайт переходит из одной стороны поля в другое. если да, то его visibility меняется на false, иначе виден его полёт через поле
 		if (x + dx == -1) {dx = level[0].length - 1; visibilityMarker = false}
 		else if (x + dx == level[0].length) {dx = -level[0].length + 1; visibilityMarker = false}
 
@@ -564,12 +552,13 @@ class pacmanRenderer
 ╚██████╗██║  ██║██║  ██║██║  ██║       ██║   ███████╗██╔╝ ██╗██╗
  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝
 */
+	//обновление текстуры спрайта
 	upateSpriteTexture(id, direction, vulnerable, isDead, delay)
 	{
 		var sprite = this.interactiveSprites[id];
+		//поворот спрайта игрока
 		if (id == 6)
 		{	
-			this.playerStep.play();
 			switch (direction)
 			{
 				case 0: sprite.rotation = Math.PI; break;
@@ -580,6 +569,7 @@ class pacmanRenderer
 		}
 		else
 		{
+			//полупрозрачность для парализованых противников
 			if (delay != undefined)
 			{
 				if ((delay > 7) || (delay%2 == 1))
@@ -592,6 +582,7 @@ class pacmanRenderer
 				}
 			}
 
+			//установка "уязвимого" спрайта
 			if (vulnerable > 0)
 			{
 				sprite.texture = sprite.enemyTextures.vulnerableSprites[0];
@@ -601,12 +592,13 @@ class pacmanRenderer
 				}
 			}
 			else
-			{
+			{	//установка "мертвого" спрайта
 				if (isDead)
 				{
 					sprite.alpha = 1;
 					setSprite(sprite, sprite.enemyTextures.deadSprites, direction);
 				}
+				//установка нормального спрайта
 				else
 				{
 					setSprite(sprite, sprite.enemyTextures.sprites, direction);
@@ -614,6 +606,7 @@ class pacmanRenderer
 			}	
 		}	
 
+		//функция выбора спрайта из массива 4х
 		function setSprite(sprite, collection, direction)
 		{
 			switch (direction)
@@ -634,20 +627,9 @@ class pacmanRenderer
 ██████╔╝███████╗███████║   ██║██╗    ███████║██║     ██║  ██║██║   ██║   ███████╗
 ╚═════╝ ╚══════╝╚══════╝   ╚═╝╚═╝    ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝
 */
+	//уничтожение спрайта (применяется для точек и озверина)
 	destroySprite(x,y)
 	{
-		if (this.currentLevel[x][y] == 2)
-		{
-			this.dotEaten.play();	
-		}
-		else
-		{
-			if (this.currentLevel[x][y] == 3)
-			{
-				this.ozvSound.play();
-			}
-		}
-		
 		this.spriteArray[x][y].destroy();	
 	}
 
@@ -659,7 +641,7 @@ class pacmanRenderer
 ██║  ██║██║ ╚████║██║██║ ╚═╝ ██║██╗╚██████╗██║  ██║██║  ██║██║  ██║██╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝     ╚═╝╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
 */
-
+	//функция анимации персонажа и противников
 	animateChar(oldx,oldy,dx,dy,sprite)
 	{
 		var newx = oldx + dx;
@@ -699,7 +681,7 @@ class pacmanRenderer
 ██████╔╝██╗    ███████║██║     ██║  ██║██║   ██║   ███████╗
 ╚═════╝ ╚═╝    ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝
 */
-
+	//создание спрайта бонуса
 	spawnBonusSprite(x,y,id)	
 	{
 		var bonus = this.currentLevelBonuses[id];
@@ -711,13 +693,10 @@ class pacmanRenderer
 		this.gameCanvas.stage.addChildAt(bonus.sprite, 0);
 	}
 
-	removeBonusSprite(id, noSound)	
+	//уничтожение спрайта бонуса
+	removeBonusSprite(id)	
 	{
 		this.currentLevelBonuses[id].sprite.destroy();
-		if (noSound == undefined) 
-		{
-			this.bonusSound.play();
-		}
 	}
 
 /*
@@ -745,16 +724,13 @@ class pacmanRenderer
 
 	pause()
 	{
-		this.buttonSound.play();
 		if (this.pauseBox.alpha == 0)
 		{
 			this.pauseBox.alpha = 0.3;
 			this.pauseText.alpha = 1;
-			this.gameSong.stop();
 		}
 		else
 		{
-			this.gameSong.resume();
 			this.pauseBox.alpha = 0;
 			this.pauseText.alpha = 0;
 		}
@@ -769,7 +745,7 @@ class pacmanRenderer
 */
 	animatePlayerDeath()
 	{
-		this.gameSong.stop();
+		//проигрывание анимации смерти игрока и соответствующего звука (который зависит от того конец ли игры, или нет)
 		var player = this.interactiveSprites[6];
 		this.extraLives --;
 		player.rotation = 0;
@@ -780,18 +756,7 @@ class pacmanRenderer
 		setTimeout(boundAnimate,500);
 		function animate()
 		{
-			if (i == 0)
-			{
-				if  (this.extraLives == -1)
-				{
-					this.gameOverSound.play();
-				}	
-				else
-				{
-					this.deathSound.play();
-				}
-			}
-			if (i<length)	
+			if (i < length)	
 			{
 				player.textures = [this.playerDeathTextures[i]];
 				i++;
@@ -813,7 +778,7 @@ class pacmanRenderer
 ██║  ██║███████╗███████║███████╗   ██║   
 ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝  
 */
-
+	//перемещение игрока и противников после гибели игрока
 	resetAfterDeath()
 	{
 		for (var i = 0; i < this.interactiveSprites.length; i++)
@@ -828,7 +793,6 @@ class pacmanRenderer
 				player.alpha = 1;
 			}
 		}
-		this.gameSong.play();
 		var event = new CustomEvent("Pacman: resetting finished");
 		document.dispatchEvent(event);
 	}
@@ -845,7 +809,6 @@ class pacmanRenderer
 	gameOver(event)
 	{
 		this.animatePlayerDeath();
-		this.gameSong.stop();
 		var topPlayers = event.detail.topPlayers;
 		var temp;
 		this.scoresScreenText.alpha = 0;
@@ -859,7 +822,6 @@ class pacmanRenderer
 		}
 		this.gameOverScore.alpha = 1;
 		this.pauseBox.alpha = 0.3;	
-		this.scoresSong.play();
 	}
 
 /*
@@ -873,7 +835,6 @@ class pacmanRenderer
 
 	startIdleAnimation()
 	{
-		this.playIdleSound();
 		if (this.poly != undefined)
 		{
 			this.poly.destroy();
@@ -914,6 +875,8 @@ class pacmanRenderer
 ███████╗██║ ╚████║███████╗██║ ╚═╝ ██║██╗    ███████║╚██████╗╚██████╔╝██║  ██║███████╗
 ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚═╝╚═╝    ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 */
+
+	//отображение очков в случае гибели противника или съедения игроком бонуса, который даёт очки или жизни
 	displayScore(number,x,y, lives)
 	{
 		var score = new PIXI.Text(number,
@@ -929,17 +892,21 @@ class pacmanRenderer
 			});
 		score.x = x * this.blockWidth;
 		score.y = y * this.blockHight;
+
+		//изменение надписи если бонус дал жизни
 		if (lives != undefined)
 		{
 			score.style.fill = 0xff6468;
 			score.text = number + " UP";
 			score.y -= this.blockHight;
 		}
+
 		this.gameCanvas.stage.addChild(score);
 		this.scoreSpriteArray.push(score);
 		setTimeout(this.removeScore.bind(this), 3000);
 	}
 
+	//удаление спрайта очков
 	removeScore()
 	{
 		this.scoreSpriteArray[0].destroy();
@@ -957,7 +924,6 @@ class pacmanRenderer
 
 	handleEnterName(event)
 	{
-		this.gameSong.stop();
 		this.scoresScreenText.alpha = 1;
 		this.scoresScreenText.text = "CONGRATULATIONS!\nYou reached the\nhigh scores!\nYour score: "+event.detail.score+"\nEnter your name";
 		this.pauseBox.alpha = 0.5;
@@ -967,7 +933,6 @@ class pacmanRenderer
 	{
 		this.pauseBox.alpha = 0.5;
 		this.readyScreenText.alpha = 1;
-		this.gameSong.speed = 1;
 	}
 
 	removeReadyScreen()
@@ -978,6 +943,7 @@ class pacmanRenderer
 
 	idleHandler()
 	{
+		this.loadingText.visible = false;
 		this.pauseBox.alpha = 0;
 		this.destroyLevel();
 		this.pauseText.alpha = 0;
@@ -989,66 +955,5 @@ class pacmanRenderer
 	resetLives()
 	{
 		this.extraLives = this.startExtraLives;
-	}
-
-/*
-██████╗ ██╗      █████╗ ██╗   ██╗    ███████╗ ██████╗ ██╗   ██╗███╗   ██╗██████╗ 
-██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔═══██╗██║   ██║████╗  ██║██╔══██╗
-██████╔╝██║     ███████║ ╚████╔╝     ███████╗██║   ██║██║   ██║██╔██╗ ██║██║  ██║
-██╔═══╝ ██║     ██╔══██║  ╚██╔╝      ╚════██║██║   ██║██║   ██║██║╚██╗██║██║  ██║
-██║     ███████╗██║  ██║   ██║       ███████║╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝
-╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝       ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
-*/
-
-	playIdleSound()
-	{
-		this.idleSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/idle.wav"]);
-		this.idleSound.play();	
-	}
-
-	startGameSong()
-	{
-		this.gameSong.play();
-		this.gameSong.loop = true;	
-	}
-
-	startScoresSong()
-	{
-		this.scoresSong.play();
-		this.scoresSong.loop = true;	
-	}
-
-	switchGameSongSpeed(distance)
-	{
-		if (distance < 6)
-		{
-			this.gameSong.speed = 1.6 - distance/10;
-		}
-		else
-		{
-			this.gameSong.speed = 1;
-		}
-	}
-
-	playEatEnemy()
-	{
-		this.enemyEaten.play();
-	}
-
-	generateLoadedEvent()
-	{
-		this.playerStep = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/walk.wav"]);
-		this.dotEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/dotEaten.wav"]);
-		this.enemyEaten = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/eatEnemy.wav"]);
-		this.scoresSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/scores.wav"]);
-		this.gameSong = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameSong.wav"]);
-		this.buttonSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/button.wav"]);
-		this.deathSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/death.wav"]);
-		this.ozvSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/ozv.wav"]);
-		this.gameOverSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/gameOver.wav"]);
-		this.bonusSound = PIXI.sound.Sound.from(PIXI.loader.resources["resources/sounds/bonus.wav"]);
-		var event = new CustomEvent("Pacman: loading finished");
-		this.loadingText.visible = false;
-		document.dispatchEvent(event);
 	}
 }

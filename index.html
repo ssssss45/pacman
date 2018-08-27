@@ -11,6 +11,7 @@
 <script src="js/characters.js"></script>
 <script src="js/enemies.js"></script>
 <script src="js/bonuses.js"></script>
+<script src="js/pacmanSound.js"></script>
 	<style type="text/css">
 		canvas{
 			background: rgba(255,0,0,0.5);
@@ -19,7 +20,9 @@
 	</head>
 	<body style="background-color:#D4D4D4">
 		<div id="pacman-container">
-			<script>var pacmanGame = new pacman({
+			<script>
+				var sound = new PacmanSound();
+				var pacmanGame = new pacman({
 				//-3 - индикатор пустоты внутри стен. никак не отрисовывается, но бонусы там появлятся не будут -2 точка выхода из клетки, -1 - филлер (считается как стена при отрисовке, но не отрисовывается, 0 - пустота, 1 - стена, 2 - бонус, 3 - озверин, 4 - горизонтальные ворота, 5 - вертикальные ворота, 6 - игрок, 10,7,8,9 - монстры
 				"levels" :	[
 			[
@@ -103,9 +106,8 @@
 		"startExtraLives" : 2,
 		"width" : 400,
 		"hight" : 400,
-		"bottomContainerHight" : 50,
 		"ticksVulnerable" : 50,
-		"scoreContainerHight" : 50,
+		"waitForEvent" : "Pacman sound: loading finished",
 		"playerSpritesLocations" : [{x:0,y:0},{x:0,y:1},{x:0,y:2}],
 		"playerDeathSpritesLocations" : [{x:0,y:2},{x:0,y:3},{x:0,y:4},{x:0,y:5},{x:0,y:6},{x:0,y:7},{x:0,y:8},{x:0,y:9},{x:0,y:10},{x:0,y:11},{x:0,y:12},{x:0,y:13}],
 		"enemies" :
@@ -185,9 +187,41 @@
 				}
 			]
 			})
-
-
 		</script>
 		</div>
+
+		<div class="iface">
+			<button onclick = "pacmanGame.startPressed()">Game start</button>
+			<button onclick = "pacmanGame.pausePressed()">pause</button>
+			<button onclick = "addScore()">add score</button>
+			<button onclick = "pacmanGame.returnPressed()">back to idle</button>
+			<input maxlength = "3" style = "width: 40px" id = "nameInput"></input>
+			<div id = "score"></div>
+			<div id = "lives"></div>
+		</div>
+
+		<script>
+			document.addEventListener("Pacman: amount of lives changed", updateLives);
+			document.addEventListener("Pacman: score changed", updateScore);
+
+			function updateLives()
+			{
+				var livesContainer = document.getElementById("lives");
+				livesContainer.innerHTML = "lives: " + event.detail.lives;
+			}
+
+			function updateScore(event)
+			{
+				var scoreContainer = document.getElementById("score");
+				scoreContainer.innerHTML = "score: " + event.detail.score;
+			}
+
+			function addScore()
+			{
+				var nameContainer = document.getElementById("nameInput");
+				pacmanGame.addScore(nameContainer.value);
+			}
+		</script>
+
 	</body>
 </html>

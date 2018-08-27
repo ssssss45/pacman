@@ -19,13 +19,25 @@ states:
 	constructor()
 	{
 		this.state = 0;
+
+		this.loading = 0;
+		this.idle = 1;
+		this.playing = 2;
+		this.pause = 3;
+		this.gameOver = 4;
+		this.highScoreEnter = 5;
+		this.levelClear = 7;
+		this.playerDead = 8;
+		this.resetting = 9;
+		this.readyScreen = 10;
+		this.newGame = 11;
 	}
 
 	setIdle()
 	{
-		if ((this.state == 3) || (this.state == 0))
+		if ((this.state == this.pause) || (this.state == this.loading))
 		{
-			this.state = 1;
+			this.state = this.idle;
 			var event = new CustomEvent("Pacman: idle");
 			document.dispatchEvent(event);
 		}
@@ -33,9 +45,9 @@ states:
 
 	setPlaying()
 	{
-		if ((this.state == 10))
+		if ((this.state == this.readyScreen))
 		{
-			this.state = 2;
+			this.state = this.playing;
 			var event = new CustomEvent("Pacman: game start");
 			document.dispatchEvent(event);
 		}
@@ -43,18 +55,22 @@ states:
 
 	setPause()
 	{
-		if (this.state == 2)
+		if (this.state == this.playing)
 		{
-			this.state = 3;
-			var event = new CustomEvent("Pacman: game paused");
+			this.state = this.pause;
+			var event = new CustomEvent("Pacman: game paused",{
+				detail: {paused: true}
+			});
 			document.dispatchEvent(event);
 		}
 		else
 		{
-			if (this.state == 3)
+			if (this.state == this.pause)
 			{
-				this.state = 2;
-				var event = new CustomEvent("Pacman: game paused");
+				this.state = this.playing;
+				var event = new CustomEvent("Pacman: game paused",{
+					detail: {paused: false}
+				});
 				document.dispatchEvent(event);
 			}	
 		}
@@ -62,9 +78,9 @@ states:
 
 	setGameOver(topPlayers)
 	{
-		if ((this.state == 2) || (this.state == 5))
+		if ((this.state == this.playing) || (this.state == this.highScoreOver))
 		{
-			this.state = 4;
+			this.state = this.gameOver;
 			var event = new CustomEvent("Pacman: game over",{
 				detail: {topPlayers: topPlayers}
 			});
@@ -74,9 +90,9 @@ states:
 
 	setEnterHighScore(score)
 	{
-		if (this.state == 2)
+		if (this.state == this.playing)
 		{
-			this.state = 5;
+			this.state = this.highScoreOver;
 			var event = new CustomEvent("Pacman: enter high score",{
 				detail: {score: score}
 			});
@@ -87,9 +103,9 @@ states:
 
 	setLevelClearScreen()
 	{
-		if (this.state == 2)
+		if (this.state == this.playing)
 		{
-			this.state = 7;
+			this.state = this.levelClear;
 			var event = new CustomEvent("Pacman: level clear");
 			document.dispatchEvent(event);
 		}
@@ -97,9 +113,9 @@ states:
 
 	setPlayerDied()
 	{
-		if (this.state == 2)
+		if (this.state == this.playing)
 		{
-			this.state = 8;
+			this.state = this.playerDead;
 			var event = new CustomEvent("Pacman: player died");
 			document.dispatchEvent(event);
 		}
@@ -107,9 +123,9 @@ states:
 
 	setResetting()
 	{
-		if (this.state == 8)
+		if (this.state == this.playerDead)
 		{
-			this.state = 9;
+			this.state = this.resetting;
 			var event = new CustomEvent("Pacman: resetting");
 			document.dispatchEvent(event);
 		}
@@ -117,18 +133,18 @@ states:
 
 	setReadyScreen()
 	{
-		if ((this.state == 11)||(this.state == 2)||(this.state == 4)||(this.state == 7))
+		if ((this.state == this.newGame)||(this.state == this.playing)||(this.state == this.gameOver)||(this.state == this.levelClear))
 		{
 
-			this.state = 10;
+			this.state = this.readyScreen;
 			var event = new CustomEvent("Pacman: ready screen");
 			document.dispatchEvent(event);
 		}
 		else
 		{
-			if(this.state == 9)
+			if(this.state == this.resetting)
 			{
-				this.state = 10;
+				this.state = this.readyScreen;
 				var event = new CustomEvent("Pacman: ready screen",{
 					detail: {
 						notANewGame :true
@@ -141,64 +157,11 @@ states:
 
 	setNewGame()
 	{
-		if ((this.state == 1) || (this.state == 10) || (this.state == 4)|| (this.state == 2))
+		if ((this.state == this.idle) || (this.state == this.readyScreen) || (this.state == this.gameOver)|| (this.state == this.playing))
 		{
-			this.state = 11;
+			this.state = this.newGame;
 			var event = new CustomEvent("Pacman: new game");
 			document.dispatchEvent(event);
-		}
-	}
-
-	setState(state)
-	{
-		if ((state==1)||(state=="idle"))
-		{
-			this.setIdle();
-		}
-
-		if ((state==2)||(state=="playing"))
-		{
-			this.setPlaying();
-		}
-
-		if ((state==3)||(state=="pause"))
-		{
-			this.setPause();
-		}
-
-		if ((state==4)||(state=="gameOver"))
-		{
-			this.setGameOver();
-		}
-
-		if ((state==6)||(state=="lookHighScore"))
-		{
-			this.setLookHighScore();
-		}
-
-		if ((state==7)||(state=="levelClear"))
-		{
-			this.setLevelClearScreen();
-		}
-
-		if ((state==8)||(state=="playerDead"))
-		{
-			this.setPlayerDied();
-		}
-
-		if ((state==9)||(state=="resetting"))
-		{
-			this.setResetting();
-		}
-
-		if ((state==10)||(state=="readyScreen"))
-		{
-			this.setReadyScreen();
-		}
-
-		if ((state==11)||(state=="newGame"))
-		{
-			this.setNewGame();
 		}
 	}
 

@@ -22,6 +22,7 @@ class character
 		this.originX = params.x;
 		this.originY = params.y;
 		this.id = params.id;
+		this.playerMovedEvent = new CustomEvent("Pacman: player moved");
 	}
 
 	move (dx, dy, direction, level, isDead, vulnerable, outOfCage)
@@ -32,20 +33,20 @@ class character
 		{
 			if (level[dx] == undefined) return true;
 			if (isPlayer)
+			{
+				return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
+			}
+			else
+			{
+				if (!outOfCage)
 				{
-					return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));
+					return level[dx][dy] != 1;	
 				}
 				else
 				{
-					if (!outOfCage)
-					{
-						return level[dx][dy] != 1;	
-					}
-					else
-					{
-						return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));		
-					}
+					return ((level[dx][dy]!=-3)&&(level[dx][dy]!=1)&&(level[dx][dy]!=5)&&(level[dx][dy]!=4));		
 				}
+			}
 		}
 
 		function checkFood(dx, dy, level, renderer, isPlayer)
@@ -74,6 +75,11 @@ class character
 
 		if((check(this.y + this.dy, this.x + this.dx, level, this.isPlayer, outOfCage)) && (this.direction != -1))
 		{
+			if (this.isPlayer)
+				{
+					document.dispatchEvent(this.playerMovedEvent);
+				}
+
 			if (this.eatsDots) checkFood(this.y + this.dy ,this.x + this.dx, level, this.renderer, this.isPlayer);
 			this.renderer.boundRenderMovement(this.x, this.y, this.dx, this.dy, this.direction, this.id, vulnerable, isDead);
 			this.x = this.x + this.dx;

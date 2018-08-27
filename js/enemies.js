@@ -73,7 +73,6 @@ class enemy
 	setDead()
 	{
 		this.isDead = true;
-		this.character.renderer.playEatEnemy();
 		this.character.renderer.displayScore(this.scoreForDeath, this.character.x, this.character.y);
 	}
 

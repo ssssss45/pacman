@@ -19,45 +19,10 @@ class pacman
 		this.startExtraLives = params.startExtraLives || 2;
 		this.bonuses = params.bonuses;
 		this.lifeMax = params.lifeMax;
-
-		//добавление элементов управления
-		var startPlace = params.hight * 0.9;
-		var startPlaceHorizontal = params.width / 2.5;
-		var recordInputPlace = params.hight / 2 + 20;
-		var recordInputPlaceHorizontal = params.width / 2 - 20;
-		var pausePlace = params.hight + this.bottomContainerHight/2;
-		var scorePlace = params.hight + 10;
-		
-		//инпут для ввода рекордов
-		this.recordInput = elementGenerator("input", undefined, recordInputPlace, recordInputPlaceHorizontal, 40, "hidden", undefined, this.container);
-		this.recordInput.setAttribute("maxlength", 3);
-		
-		//кнопка начала игры
-		this.startButton = elementGenerator("button","New game", startPlace, startPlaceHorizontal, startPlaceHorizontal/2, "hidden", "pacmanGame.startPressed()", this.container);
-		
-		//кнопка ввода рекордов
-		recordInputPlace += 20;
-		this.recordButton = elementGenerator("button","Enter name", recordInputPlace, recordInputPlaceHorizontal, undefined, "hidden", "pacmanGame.addScore()", this.container);
-		
-		//кнопка паузы
-		this.pauseButton = elementGenerator("button","Pause", pausePlace, undefined, undefined, "hidden", "pacmanGame.pausePressed()", this.container);
-
-		//кнопка продолжения игры
-		this.continueButton = elementGenerator("button","Continue", recordInputPlace, recordInputPlaceHorizontal - 55, 150, "hidden", "pacmanGame.pausePressed()", this.container);
-
-		//кнопка возвращения в начальный экран
-		this.toIdleButton = elementGenerator("button","Return to welcome screen", recordInputPlace+20, recordInputPlaceHorizontal - 55, 150, "hidden", "pacmanGame.returnPressed()", this.container);
-
-		//контейнер с очками
-		this.scoreContainer = elementGenerator("div", "", scorePlace, undefined, undefined, "visible", undefined, this.container);
-		this.scoreContainer.style.color = "white";
-		
-		//контейнер с количеством жизней
-		this.lifeContainer = elementGenerator("div", "", scorePlace,  params.width/2, undefined, "visible", undefined, this.container);
-		this.lifeContainer.style.color = "white";
+		var waitForEvent = params.waitForEvent;
 
 		//инициализация отрисовки
-		this.renderer= new pacmanRenderer({
+		this.renderer = new pacmanRenderer({
 			"pathToSpriteSheet" : params.pathToSpriteSheet,
 			"spriteSheetWidth" : params.spriteSheetWidth,
 			"spriteSheetHight" : params.spriteSheetHight,
@@ -70,7 +35,6 @@ class pacman
 			"startExtraLives" : params.startExtraLives,
 			"width" : params.width,
 			"hight" : params.hight,
-			"bottomContainerHight" : params.bottomContainerHight,
 			"scoreContainerHight" : params.scoreContainerHight,
 			"levels":this.levels,
 			"playerSpritesLocations" : params.playerSpritesLocations,
@@ -93,6 +57,16 @@ class pacman
 
 		//стейт машина
 		this.stateMachine = new pacmanStateMachine();
+
+		//если задано событие то ждем его, если нет то переходим в Idle
+		if (waitForEvent != undefined)
+		{
+			document.addEventListener(waitForEvent, this.switchToIdle.bind(this));
+		}
+		else
+		{
+			this.switchToIdle();
+		}
 
 		//контроллер
 		this.keycon = new keyboardController();
@@ -117,9 +91,6 @@ class pacman
 		document.addEventListener("Pacman: resetting", this.reset.bind(this));
 		document.addEventListener("Pacman: resetting finished", this.handleFinishedResetting.bind(this));
 		document.addEventListener("Pacman: level clear", this.handleLevelClear.bind(this));
-		document.addEventListener("Pacman: enter high score", this.handleEnterScore.bind(this));
-		document.addEventListener("Pacman: game over", this.gameOverHandler.bind(this));
-		document.addEventListener("Pacman: idle", this.idleHandler.bind(this));
 		document.addEventListener("visibilitychange", this.tabChanged.bind(this));
 		document.addEventListener("Pacman: loading finished", this.loadingFinishedHandler.bind(this));
 
@@ -133,18 +104,11 @@ class pacman
 			};
 			keycon.bindActions(key);
 		}
+	}
 
-		//функция генерации элементов управления
-		function elementGenerator(type, text, top, left, width, visibility, onclick, container)
-		{
-			var button = document.createElement(type);
-			button.innerHTML = text;
-			button.setAttribute("style","position:absolute; z-index:1; top:"+top+"px; left:"+left+"px; width:"+width+"px;");
-			button.style.visibility = visibility;
-			button.setAttribute("onClick",onclick);
-			container.appendChild(button);
-			return button;
-		}
+	switchToIdle()
+	{
+		this.stateMachine.setIdle();
 	}
 /*
 ██╗  ██╗███████╗██╗   ██╗     █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
@@ -190,13 +154,11 @@ class pacman
 */
 	gameStart()
 	{
-		this.pauseButton.style.visibility = "visible";
-		this.startButton.style.visibility = "hidden";
 		clearInterval(this.currentGameInterval);
 		this.score = 0;
-		this.scoreContainer.innerHTML="Score: 0";
 		this.extraLives = this.startExtraLives;
-		this.lifeContainer.innerHTML="Lives: " + this.extraLives;
+		this.updateLives();
+		this.updateScore();
 		this.currentLevelNumber = -1;
 		this.stateMachine.setReadyScreen();
 	}
@@ -293,7 +255,7 @@ class pacman
 							"scoreForDeath" : enem.scoreForDeath,
 							"id" : item,
 							"idleMode" : enem.idleMode,
-							"locationDistance" : enem.locationDistance
+							locationDistance : enem.locationDistance
 							});
 						this.enemyArray.push(currentEnemy);
 					}
@@ -388,18 +350,22 @@ class pacman
 			this.newdy = 1;
 		}
 
-		if ((this.newDirection != -1)&&(this.moveTimer >= 120))
+		if ((this.newDirection != -1) && (this.moveTimer >= 120))
 		{
-			var score = (this.player.move(this.newdx,this.newdy,this.newDirection, this.currentLevel) || 0);
+			var score = (this.player.move(this.newdx, this.newdy, this.newDirection, this.currentLevel) || 0);
+			
 			//если съеден озверин, то всем противникам которые могут быть уязвимы и живы выдается уязвимость
 			if (score == -1)
 			{
+				var event = new CustomEvent("Pacman: ozverin eaten");
+				document.dispatchEvent(event);
 				changeEnemyParams(this.enemyArray, this.ticksVulnerable);
 			}
 			//если съедена точка то начисляются очки
 			else
 			{
 				this.score += score;
+				if (score == 1) this.updateScore("dot");
 				this.currentLevelFood -= score;
 			}
 			this.moveTimer = -40;
@@ -414,14 +380,15 @@ class pacman
 					this.renderer.removeBonusSprite(i);
 					current.isOnField = false;
 
+					//добавление задержки и озверина
 					changeEnemyParams(this.enemyArray, current.ozv, current.freeze);
-
+					//добавление очков
 					if (current.points != 0)
 					{
 						this.score += current.points;
-						this.renderer.displayScore(current.points, current.x,current.y)
 					}
-
+					this.updateScore("bonus");
+					//добавление жизней, уменьшение жизней до максимума если получилось больше, и передача количества отрисовщику (для звука конца игры)
 					if (current.lives != 0)
 					{
 						this.extraLives += current.lives;
@@ -435,7 +402,7 @@ class pacman
 					}
 				}
 			}
-
+			//функция, начислающая противникам уязвимость и задержку
 			function changeEnemyParams (enemyArray, amount, delay)
 			{
 				for (var i = 0; i < enemyArray.length; i++)
@@ -487,7 +454,7 @@ class pacman
 					}
 					currentEnemy.vulnerable--;
 				}
-
+				// если у противника есть задержка то либо обновляем его спрайт, либо двигаем его внутри клетки
 				if(currentEnemy.delay > 0)
 				{
 					currentEnemy.delay --;
@@ -536,7 +503,7 @@ class pacman
 							//если нет то двигается нормально
 								var result = currentEnemy.move(this.currentLevel, this.player.x, this.player.y);	
 							}
-							 
+							 //если противник может есть точки то result будет равен 1
 							if (result == 1){this.currentLevelFood -= result;}
 						}
 					}
@@ -555,6 +522,7 @@ class pacman
 						currentEnemy.vulnerable = 0;
 						currentEnemy.setDead();
 						this.score += currentEnemy.scoreForDeath;
+						this.updateScore("enemy");
 						currentEnemy.outOfCage = false;
 						currentEnemy.clearData();
 						currentEnemy.delay = 0;
@@ -568,8 +536,13 @@ class pacman
 						}
 					}
 				}
-
-				this.renderer.switchGameSongSpeed(minDistanceToEnemy);
+				//переключение скорости игровой музыки в зависимости от близости противника
+				var event = new CustomEvent("Pacman: closest enemy to player",{
+					detail: {
+						distance : minDistanceToEnemy
+					}
+				});
+				document.dispatchEvent(event);
 			}
 /*
 ██████╗  ██████╗ ███╗   ██╗██╗   ██╗███████╗███████╗███████╗
@@ -600,21 +573,17 @@ class pacman
 						this.generateRandomLocationForBonus(bonus);
 						this.renderer.spawnBonusSprite(bonus.x, bonus.y, i);
 					}
-				
 				}
 			}
 		}
 
 		this.moveTimer = this.moveTimer + 40;
-		if (oldscore != this.score)
+		//если еда на уровне закончилась, то переходим на следующий
+		if (this.currentLevelFood == 0)
 		{
-			this.scoreContainer.innerHTML="Score: "+this.score;
-			if (this.currentLevelFood == 0)
-			{
-				clearInterval(this.currentGameInterval);
-				this.stateMachine.setLevelClearScreen();
-			}
-		}	
+			clearInterval(this.currentGameInterval);
+			this.stateMachine.setLevelClearScreen();
+		}
 	}
 
 /*
@@ -625,9 +594,41 @@ class pacman
 ███████╗██║ ╚████╔╝ ███████╗███████║
 ╚══════╝╚═╝  ╚═══╝  ╚══════╝╚══════╝
 */
+	//обновление счетчика жизней
 	updateLives()
 	{
-		this.lifeContainer.innerHTML = "Lives: "+this.extraLives;;
+		var event = new CustomEvent("Pacman: amount of lives changed",{
+			detail: {lives: this.extraLives}
+		});
+		document.dispatchEvent(event);
+	}
+
+	getLives()
+	{
+		return this.extraLives;
+	}
+
+/*
+███████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████╗██║     ██║   ██║██████╔╝█████╗  
+╚════██║██║     ██║   ██║██╔══██╗██╔══╝  
+███████║╚██████╗╚██████╔╝██║  ██║███████╗
+╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+*/
+
+	//обновление счетчика очков
+	updateScore(reason)
+	{
+		var event = new CustomEvent("Pacman: score changed",{
+			detail: {score: this.score, reason: reason}
+		});
+		document.dispatchEvent(event);
+	}
+
+	getScore()
+	{
+		return this.score;
 	}
 
 /*
@@ -638,9 +639,9 @@ class pacman
    ██║   ╚██████╔╝██║         ███████║╚██████╗╚██████╔╝██║  ██║███████╗███████║
    ╚═╝    ╚═════╝ ╚═╝         ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 */
-	addScore()
+	//добавление рекорда в таблицу лидеров
+	addScore(name)
 	{
-		var name =  this.recordInput.value;
 		while (name.length < 3)
 		{
 			name +=" ";
@@ -672,8 +673,6 @@ class pacman
 			this.topPlayers.splice(5,1);
 		}
 		localStorage.pacmanGameTopPlayersList = JSON.stringify(this.topPlayers);
-		this.recordInput.style.visibility = "hidden";
-		this.recordButton.style.visibility = "hidden";
 		this.stateMachine.setGameOver(this.topPlayers);
 	}
 
@@ -685,10 +684,11 @@ class pacman
 ██║  ██║███████╗███████║███████╗   ██║   
 ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝   
 */
-
+	//возвращение всех на изначальные позиции после гибели игрока
 	reset()
 	{
-		for (var i = 0; i<this.enemyArray.length;i++)
+		//возвращение противников
+		for (var i = 0; i < this.enemyArray.length;i++)
 		{
 			var enemy = this.enemyArray[i]
 			enemy.character.x = enemy.character.originX;
@@ -699,7 +699,7 @@ class pacman
 			enemy.delay = enemy.defaultDelay;
 			enemy.clearData();
 		}
-
+		//возвращение и удаление бонусов
 		for (var i = 0; i < this.currentLevelBonuses.length; i++)
 		{
 			var bonus = this.currentLevelBonuses[i];
@@ -710,7 +710,7 @@ class pacman
 				bonus.isOnField = false;
 			}
 		}
-
+		//возвращение игрока
 		this.player.x = this.player.originX;
 		this.player.y = this.player.originY;
 		this.newDirection = -1;
@@ -741,14 +741,10 @@ class pacman
 	{
 		if (this.stateMachine.getState() == 3)
 		{
-			this.continueButton.style.visibility = "visible";
-			this.toIdleButton.style.visibility = "visible";
 			clearInterval(this.currentGameInterval);	
 		}
 		else
 		{
-			this.continueButton.style.visibility = "hidden";
-			this.toIdleButton.style.visibility = "hidden";
 			this.currentGameInterval = setInterval(this.gameStep.bind(this),40);
 		}
 	}
@@ -776,7 +772,6 @@ class pacman
 				this.topPlayers = [];
 			}
 
-			this.pauseButton.style.visibility = "hidden";
 			var highScore = (this.topPlayers.length < 5);
 			for (var i = 0; i < this.topPlayers.length; i++)
 			{
@@ -809,6 +804,12 @@ class pacman
 	handleFinishedResetting()
 	{
 		this.stateMachine.setReadyScreen();
+		var event = new CustomEvent("Pacman: closest enemy to player",{
+			detail: {
+				distance : this.currentLevel.length
+			}
+		});
+
 	}
 
 	readyScreen(event)
@@ -825,32 +826,9 @@ class pacman
 		this.stateMachine.setReadyScreen();
 	}
 
-	handleEnterScore()
-	{
-		this.recordInput.value = "";
-		this.recordInput.style.visibility = "visible";
-		this.recordButton.style.visibility = "visible";
-	}
-
-	gameOverHandler()
-	{
-		this.startButton.style.visibility = "visible";
-	}
-
 	loadingFinishedHandler()
 	{
 		this.stateMachine.setIdle();
-		this.startButton.visible = true;
-	}
-
-	idleHandler()
-	{
-		this.startButton.style.visibility = "visible";
-		this.continueButton.style.visibility = "hidden";
-		this.toIdleButton.style.visibility = "hidden";
-		this.pauseButton.style.visibility = "hidden";
-		this.scoreContainer.innerHTML = "";
-		this.lifeContainer.innerHTML = "";
 	}
 
 	generateRandomLocationForBonus(bonus)
